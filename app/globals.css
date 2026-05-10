@@ -1,26 +1,48 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-cream: #f4ead5;
+  --color-jet: #000000;
+  --color-signal: #ff3b00;
+  --color-acid: #d6f700;
+  --color-stone-1: #1a1a1a;
+  --color-stone-2: #2a2a2a;
+
+  --font-display: var(--font-anton), 'Arial Black', sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-sans: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --tracking-brutal: -0.04em;
+  --tracking-mono: 0.16em;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    background: var(--color-jet);
+    color: var(--color-cream);
+  }
+  body {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  ::selection {
+    background: var(--color-signal);
+    color: var(--color-cream);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .text-brutal {
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-brutal);
+    text-transform: uppercase;
+    line-height: 0.9;
+  }
+  .text-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: var(--tracking-mono);
+    text-transform: uppercase;
+  }
 }
