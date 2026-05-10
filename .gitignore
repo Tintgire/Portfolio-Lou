@@ -1,0 +1,22 @@
+# Visual companion brainstorm artifacts
+.superpowers/
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
