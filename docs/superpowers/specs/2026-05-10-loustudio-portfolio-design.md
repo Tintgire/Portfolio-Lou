@@ -61,7 +61,8 @@ loustudio/
 ├── public/
 │   ├── videos/works/<slug>/      # MP4 horizontaux par projet
 │   ├── images/works/<slug>/      # photos optimisées (next/image gère AVIF/WebP)
-│   └── models/lipstick.glb       # modèle 3D
+│   ├── textures/                 # normal map béton CC0 (Poly Haven) pour le lipstick procédural
+│   └── lipstick-fallback.png     # screenshot du canvas en idle (a11y / no-WebGL)
 ├── messages/                     # next-intl: fr.json, en.json (UI strings)
 ├── lib/
 │   ├── works.ts                  # MDX loader, getAllWorks(locale), getWorkBySlug(slug, locale)
@@ -78,7 +79,11 @@ loustudio/
 
 ### Polices
 
-`next/font/google` ou local : grosse display brutaliste (**Anton** ou **Bebas Neue** en gratuit, ou Druk Wide payant si Lou veut investir) + monospace **JetBrains Mono** pour les méta.
+100% gratuit (OFL), via `next/font/google` :
+- **Anton** — display brutaliste pour titres XXL
+- **JetBrains Mono** — monospace pour les méta, labels, indicateurs
+
+Pas de police payante au MVP. Si Lou veut upgrader vers Druk Wide ou équivalent plus tard, le swap se fait en 1 ligne dans `app/[locale]/layout.tsx`.
 
 ### Routing i18n
 
@@ -214,16 +219,19 @@ Lit les MDX via `next-mdx-remote/rsc` (server components, zéro JS client pour l
 
 ## 8. Le lipstick 3D : modèle, interactions, perfs
 
-### Modèle 3D
+### Modèle 3D — 100% procédural R3F (pas de Blender, pas de `.glb`)
 
-- Modélisé sous **Blender** (gratuit) : tube cylindrique + bague + stick conique. ~3-5k tris, ~150-250 KB compressé en `.glb`
-- PBR materials :
-  - Tube : matcap béton brut OU métal brossé sombre
-  - Stick : rouge `#ff3b00` glossy
-  - Bague : métal chrome
-- Ambient occlusion **baked** dans la texture (pas d'AO temps réel)
-- **Fallback** si modélisation pas prête : 3 primitives R3F (cylinder + ring + cone) avec materials, reste très propre en brutaliste
-- Format `.glb` à `public/models/lipstick.glb`
+Construction par primitives Three.js / drei dans `components/three/Lipstick.tsx` :
+
+- **Tube** (corps) : `<Cylinder>` ~3 cm rayon × 6 cm hauteur, ou `<Lathe>` pour un profil légèrement galbé
+- **Bague centrale** : `<Torus>` aplati ou `<Cylinder>` fin coloré rouge
+- **Stick** (rouge à lèvres saillant) : `<Lathe>` pour un profil biseauté réaliste, ou `<Cylinder>` + `<Cone>` empilés et bevelés via segments custom
+- **Matériaux** :
+  - Tube : `<meshStandardMaterial>` avec `roughness` 0.85 + **normal map béton CC0** (Poly Haven `concrete_floor_painted_001` ou équivalent, ~200 KB) téléchargée localement dans `public/textures/`
+  - Stick : `<meshStandardMaterial>` color `#ff3b00`, metalness 0.1, roughness 0.3 (glossy waxy)
+  - Bague : `<meshStandardMaterial>` métal chrome (metalness 1, roughness 0.15)
+- Géométrie totale ~2-3k tris, **zéro fichier asset hors la normal map** (~200 KB)
+- Pas de baking AO, on s'appuie sur l'éclairage temps réel (light cheap)
 
 ### Interactions
 
@@ -250,7 +258,7 @@ components/three/
 - **Code split** : `LipstickCanvas` chargé via `next/dynamic` avec `{ ssr: false }` → ~700 KB de Three.js hors du bundle initial
 - **Loader** : skeleton brutaliste (carrés noirs animés en CSS, pas de spinner)
 - **Mobile** : shadows désactivés, `dpr={[1, 1.5]}` au lieu de 2
-- **Fallback total** : si `prefers-reduced-motion: reduce` OU WebGL absent → **photo statique** du lipstick (PNG rendu Blender) à la place du canvas
+- **Fallback total** : si `prefers-reduced-motion: reduce` OU WebGL absent → **screenshot statique** du canvas en idle (PNG capturé une fois, ~50 KB) servi via `<img>` à la place du canvas
 
 ### Accessibilité
 
@@ -315,8 +323,8 @@ components/three/
 
 | Risque | Impact | Mitigation |
 |---|---|---|
-| Modèle `.glb` pas prêt au lancement | Bloque le hero | Fallback primitives R3F dès J1 |
 | Vidéos lourdes dégradent le LCP mobile | Perf | `preload="none"` + poster + lazy-load IntersectionObserver |
+| Lipstick procédural moins "premium" qu'un .glb | Esthétique | Soigner les materials (normal map béton CC0) + lighting Stage drei + bevels propres ; possibilité de remplacer plus tard par un .glb sans changer l'API du composant |
 | Resend free tier limité | Form contact peut casser | 100 emails/jour gratuit, suffit largement ; alerte si quota atteint |
 | Domaine `loustudio.fr` déjà pris | Bloque la marque | Vérifier dispo avant tout dev (OVH/Gandi WHOIS) |
 | Photos NB lourdes en pleine bleed | LCP | next/image obligatoire, AVIF/WebP, blur placeholder |
