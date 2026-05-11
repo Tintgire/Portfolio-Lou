@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { AnimatePresence, motion, useScroll, useTransform, type MotionValue } from 'motion/react';
+import {
+  AnimatePresence,
+  motion,
+  useMotionValueEvent,
+  useScroll,
+  useTransform,
+  type MotionValue,
+} from 'motion/react';
 import { useTranslations } from 'next-intl';
 
 interface Photo {
@@ -108,10 +115,10 @@ export function Gallery() {
           </h2>
         </div>
 
-        {/* Numeral captions — one per photo, fades alongside its slide */}
-        {PHOTOS.map((_, i) => (
-          <Caption key={i} index={i} progress={scrollYProgress} />
-        ))}
+        {/* Single caption — derives its index from scroll progress so
+            there's only ever ONE visible numeral on screen (two were
+            briefly overlapping during the slot crossfades). */}
+        <ActiveCaption progress={scrollYProgress} />
 
         {/* Bottom-right "view full" hint */}
         <span
@@ -207,36 +214,43 @@ function Slide({ photo, index, progress, onOpen }: SlideProps) {
   );
 }
 
-function Caption({ index, progress }: { index: number; progress: MotionValue<number> }) {
-  const start = index * SLOT;
-  const end = start + SLOT;
-  const fade = SLOT * 0.15;
-  const opacity = useTransform(
-    progress,
-    [
-      index === 0 ? 0 : start - fade,
-      start + fade * 0.6,
-      end - fade * 0.6,
-      index === TOTAL - 1 ? 1 : end + fade,
-    ],
-    [index === 0 ? 1 : 0, 1, 1, index === TOTAL - 1 ? 1 : 0],
-  );
-  const y = useTransform(progress, [start - fade, start + fade], [30, 0]);
+function ActiveCaption({ progress }: { progress: MotionValue<number> }) {
+  // Map [0, 1] of section progress to [0, TOTAL-1]; rounding gives the
+  // index of the photo that's currently centre-stage. We listen to the
+  // motion value via useMotionValueEvent instead of useTransform so we
+  // can drive a piece of React state (which AnimatePresence needs to
+  // detect the index change and crossfade in/out).
+  const indexFloat = useTransform(progress, [0, 1], [0, TOTAL - 1]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  useMotionValueEvent(indexFloat, 'change', (latest) => {
+    const next = Math.min(TOTAL - 1, Math.max(0, Math.round(latest)));
+    setActiveIndex(next);
+  });
 
   return (
-    <motion.div
+    <div
       aria-hidden
-      style={{ opacity, y }}
-      className="pointer-events-none absolute bottom-10 left-6 z-10 flex items-end gap-4 md:bottom-14 md:left-16"
+      className="pointer-events-none absolute bottom-10 left-6 z-10 md:bottom-14 md:left-16"
     >
-      <span className="text-brutal text-cream text-7xl leading-none md:text-9xl">
-        {String(index + 1).padStart(2, '0')}
-      </span>
-      <div className="pb-3 md:pb-5">
-        <p className="text-meta text-cream/40">— {String(TOTAL).padStart(2, '0')}</p>
-        <p className="text-meta text-cream/70 mt-1">MAKEUP · STYLISM</p>
-      </div>
-    </motion.div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeIndex}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -16 }}
+          transition={{ duration: 0.35, ease: [0.76, 0, 0.24, 1] }}
+          className="flex items-end gap-4"
+        >
+          <span className="text-brutal text-cream text-7xl leading-none md:text-9xl">
+            {String(activeIndex + 1).padStart(2, '0')}
+          </span>
+          <div className="pb-3 md:pb-5">
+            <p className="text-meta text-cream/40">— {String(TOTAL).padStart(2, '0')}</p>
+            <p className="text-meta text-cream/70 mt-1">MAKEUP · STYLISM</p>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 }
 
