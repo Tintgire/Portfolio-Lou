@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl';
 export function Hero() {
   const t = useTranslations('Home');
   return (
-    <section className="relative h-screen w-full">
+    <section className="relative h-screen w-full snap-start">
       {/* meta corners */}
       <span className="text-meta text-cream absolute top-6 left-6 z-10">{t('tagline')}</span>
       <span className="text-meta text-cream absolute right-6 bottom-6 z-10">2025 — {t('vol')}</span>
