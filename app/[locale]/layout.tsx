@@ -3,6 +3,8 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Anton, JetBrains_Mono } from 'next/font/google';
 import { GsapProvider } from '@/components/motion/GsapProvider';
+import { Nav } from '@/components/layout/Nav';
+import { Footer } from '@/components/layout/Footer';
 import { locales, type Locale } from '@/i18n';
 
 const anton = Anton({
@@ -35,7 +37,11 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${anton.variable} ${jetbrainsMono.variable}`}>
       <body>
         <NextIntlClientProvider messages={messages} locale={locale}>
-          <GsapProvider>{children}</GsapProvider>
+          <GsapProvider>
+            <Nav locale={locale} />
+            {children}
+            <Footer locale={locale} />
+          </GsapProvider>
         </NextIntlClientProvider>
       </body>
     </html>
