@@ -46,7 +46,11 @@ export function AlternatingProject({ work, index, total, side, locale }: Props) 
       ?.trim()
       .slice(0, 240) ?? '';
 
-  const viewport = { once: true, margin: '-15%' };
+  // amount:0.15 fires as soon as 15% of the element is in view — reliable
+  // under Lenis-driven smooth scroll. The legacy `margin:'-15%'` form (v11
+  // API) was occasionally not firing, leaving the cover clipPath fully
+  // collapsed and the entire image-column reading as a black void.
+  const viewport = { once: true, amount: 0.15 };
   const ease = [0.76, 0, 0.24, 1] as const;
 
   const imageColumn = (
