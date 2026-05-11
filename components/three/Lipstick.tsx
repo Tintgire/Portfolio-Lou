@@ -2,8 +2,8 @@
 
 import { useRef } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
-import { TextureLoader, RepeatWrapping, Group, Texture } from 'three';
-import * as THREE from 'three';
+import { TextureLoader, RepeatWrapping, Group, Texture, Vector2 } from 'three';
+import { useDragRotate } from './useDragRotate';
 
 function configureNormalMap(texture: Texture) {
   texture.wrapS = RepeatWrapping;
@@ -27,13 +27,18 @@ export function Lipstick() {
       );
   });
 
+  const { bind, lerpToward } = useDragRotate();
+
   useFrame((state) => {
     const t = state.clock.elapsedTime;
-    group.current.rotation.y = Math.sin(t * 0.6) * 0.05;
+    const rot = lerpToward(0.15);
+    const idle = Math.sin(t * 0.6) * 0.05;
+    group.current.rotation.x = rot.x;
+    group.current.rotation.y = rot.y + idle;
   });
 
   return (
-    <group ref={group} position={[0, 0, 0]} scale={1.2}>
+    <group ref={group} {...bind()} position={[0, 0, 0]} scale={1.2}>
       <mesh castShadow receiveShadow position={[0, -0.6, 0]}>
         <cylinderGeometry args={[0.5, 0.5, 1.2, 64]} />
         <meshStandardMaterial
@@ -41,7 +46,7 @@ export function Lipstick() {
           roughness={0.85}
           metalness={0.05}
           normalMap={normalMap}
-          normalScale={new THREE.Vector2(0.6, 0.6)}
+          normalScale={new Vector2(0.6, 0.6)}
         />
       </mesh>
       <mesh castShadow position={[0, 0.05, 0]}>
