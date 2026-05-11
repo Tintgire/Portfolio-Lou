@@ -1,96 +1,31 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { TextScramble } from './TextScramble';
+import { ScrollFrames } from './ScrollFrames';
 
-const TRACK_VH = 350; // total scroll height of the hero section, in viewport heights
+const TRACK_VH = 600; // total scroll height of the hero section, in viewport heights
+const FRAME_COUNT = 200; // matches the WebP frames extracted under /videos/frames/
 const EASE_CINEMA = [0.76, 0, 0.24, 1] as const;
 
 /**
- * Cinematic hero — a 350vh tall section whose inner frame is `position: sticky`
- * and fills the viewport. The frame holds a muted <video> whose
- * `currentTime` is scrubbed from the section's scroll progress, so as you
- * scroll the hero, the camera appears to move through the makeup scene in
- * slow-motion. On top of the video, brutalist LOU typography intro-reveals,
- * then fades out to make room for the 3-line manifesto (VISAGE / MATIÈRE /
- * FORME), each one appearing in its own scroll window.
- *
- * Fluidity tactics:
- * - `preload="auto"` + we gate scrubbing on `canplaythrough` so the seek
- *   never lands on an un-buffered frame
- * - sub-frame seek threshold (0.025s) — avoids jitter from Lenis sub-pixel
- *   scroll updates
- * - `requestVideoFrameCallback` when available — keeps the painted frame in
- *   sync with the requested time, smoother than relying on `seeked` events
+ * Cinematic hero — 600vh tall section whose inner frame is `position: sticky`
+ * and fills the viewport. The visual layer is a frame-sequence player
+ * (`ScrollFrames`) that swaps pre-decoded WebPs in a `<canvas>` based on
+ * scroll progress, giving a perfectly fluid scrub (no video decoder in the
+ * loop). On top, the brutalist LOU intro-reveals then steps aside for a
+ * three-line manifesto that crossfades with the scroll.
  */
 export function Hero() {
   const t = useTranslations('Home');
   const sectionRef = useRef<HTMLElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const [ready, setReady] = useState(false);
-  const [duration, setDuration] = useState(0);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start start', 'end end'],
   });
-
-  // Load the video and unblock scrubbing only once the playable buffer covers
-  // the full duration. Until then, frame 0 is visible (static poster effect).
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const markReady = () => {
-      if (video.duration && Number.isFinite(video.duration)) {
-        setDuration(video.duration);
-        setReady(true);
-      }
-    };
-
-    if (video.readyState >= 4 && video.duration) {
-      markReady();
-    } else {
-      video.addEventListener('canplaythrough', markReady, { once: true });
-      video.addEventListener('loadedmetadata', () => {
-        if (video.duration) setDuration(video.duration);
-      });
-    }
-    video.load();
-    return () => video.removeEventListener('canplaythrough', markReady);
-  }, []);
-
-  // Scrub the video frame from the scroll progress.
-  //
-  // Critical for fluidity: we DON'T seek on every scroll event (Lenis emits many
-  // per frame). Instead, an rAF loop reads the latest scrollYProgress once per
-  // refresh and seeks at most ~60Hz. Combined with the all-intra encoded MP4
-  // (every frame is a keyframe, so seek is instant), the result is buttery.
-  useEffect(() => {
-    if (!ready || !duration) return;
-    let rafId = 0;
-    let lastSeekTime = -1;
-
-    const tick = () => {
-      const video = videoRef.current;
-      if (video) {
-        const progress = scrollYProgress.get();
-        const target = Math.max(0, Math.min(duration * progress, duration - 0.01));
-        // Only seek if the delta is meaningful — saves the decode pipeline.
-        if (Math.abs(target - lastSeekTime) > 0.02) {
-          video.currentTime = target;
-          lastSeekTime = target;
-        }
-      }
-      rafId = requestAnimationFrame(tick);
-    };
-    rafId = requestAnimationFrame(tick);
-
-    return () => cancelAnimationFrame(rafId);
-  }, [ready, duration, scrollYProgress]);
 
   // LOU title is fully visible during the intro window, then fades out so the
   // manifesto can take centre stage.
@@ -116,15 +51,10 @@ export function Hero() {
       style={{ height: `${TRACK_VH}vh` }}
     >
       <div className="bg-jet sticky top-0 h-screen w-full overflow-hidden">
-        <video
-          ref={videoRef}
-          src="/videos/scroll-makeup.mp4"
-          muted
-          playsInline
-          preload="auto"
-          aria-hidden
-          // @ts-expect-error — non-standard but widely supported attribute
-          disableRemotePlayback="true"
+        {/* frame-sequence layer */}
+        <ScrollFrames
+          progress={scrollYProgress}
+          count={FRAME_COUNT}
           className="absolute inset-0 h-full w-full object-cover"
         />
 
