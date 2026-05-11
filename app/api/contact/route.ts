@@ -41,9 +41,14 @@ export async function POST(req: Request) {
   const to = process.env.CONTACT_EMAIL_TO;
   if (!apiKey || !to) return new Response('Server misconfigured', { status: 500 });
 
+  // Default to Resend's sandbox sender (works without domain verification, but only
+  // delivers to the email address that owns the Resend account). Once loustudio.fr
+  // is verified at Resend, set RESEND_FROM=noreply@loustudio.fr in Vercel env vars.
+  const from = process.env.RESEND_FROM ?? 'onboarding@resend.dev';
+
   const resend = new Resend(apiKey);
   const { error } = await resend.emails.send({
-    from: 'noreply@loustudio.fr',
+    from,
     to,
     replyTo: parsed.data.email,
     subject: `[loustudio.fr] Message de ${parsed.data.name}`,
