@@ -1,0 +1,61 @@
+'use client';
+
+import { useRef } from 'react';
+import { useFrame, useLoader } from '@react-three/fiber';
+import { TextureLoader, RepeatWrapping, Group, Texture } from 'three';
+import * as THREE from 'three';
+
+function configureNormalMap(texture: Texture) {
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.repeat.set(2, 2);
+}
+
+export function Lipstick() {
+  const group = useRef<Group>(null!);
+  const normalMap = useLoader(TextureLoader, '/textures/concrete-normal.jpg', (loader) => {
+    const originalLoad = loader.load.bind(loader);
+    loader.load = (url, onLoad, onProgress, onError) =>
+      originalLoad(
+        url,
+        (t) => {
+          configureNormalMap(t);
+          onLoad?.(t);
+        },
+        onProgress,
+        onError,
+      );
+  });
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    group.current.rotation.y = Math.sin(t * 0.6) * 0.05;
+  });
+
+  return (
+    <group ref={group} position={[0, 0, 0]} scale={1.2}>
+      <mesh castShadow receiveShadow position={[0, -0.6, 0]}>
+        <cylinderGeometry args={[0.5, 0.5, 1.2, 64]} />
+        <meshStandardMaterial
+          color="#1a1a1a"
+          roughness={0.85}
+          metalness={0.05}
+          normalMap={normalMap}
+          normalScale={new THREE.Vector2(0.6, 0.6)}
+        />
+      </mesh>
+      <mesh castShadow position={[0, 0.05, 0]}>
+        <torusGeometry args={[0.5, 0.05, 16, 64]} />
+        <meshStandardMaterial color="#cccccc" metalness={1} roughness={0.15} />
+      </mesh>
+      <mesh castShadow position={[0, 0.7, 0]}>
+        <cylinderGeometry args={[0.42, 0.45, 1.0, 64]} />
+        <meshStandardMaterial color="#ff3b00" metalness={0.1} roughness={0.3} />
+      </mesh>
+      <mesh castShadow position={[0, 1.4, 0]}>
+        <coneGeometry args={[0.42, 0.5, 64]} />
+        <meshStandardMaterial color="#ff3b00" metalness={0.1} roughness={0.3} />
+      </mesh>
+    </group>
+  );
+}
