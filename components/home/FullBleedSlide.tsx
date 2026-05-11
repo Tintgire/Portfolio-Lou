@@ -49,7 +49,7 @@ export function FullBleedSlide({ work, index, total, locale }: Props) {
   return (
     <section
       ref={ref}
-      className="relative h-screen w-full snap-start overflow-hidden"
+      className="relative h-screen w-full overflow-hidden"
       aria-labelledby={`slide-${work.slug}`}
     >
       <div

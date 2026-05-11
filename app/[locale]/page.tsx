@@ -1,5 +1,6 @@
 import { SpotlightHero } from '@/components/home/SpotlightHero';
 import { FullBleedSlide } from '@/components/home/FullBleedSlide';
+import { Marquee } from '@/components/ui/Marquee';
 import { getAllWorks, type Locale } from '@/lib/works';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -19,8 +20,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const { locale } = await params;
   const works = await getAllWorks(locale as Locale);
   return (
-    <main className="relative h-screen snap-y snap-mandatory overflow-y-scroll">
+    <main className="relative">
       <SpotlightHero />
+      <Marquee items={['LOU', 'MAKEUP', 'STYLISM', 'PARIS', 'EDITORIAL']} duration={42} />
       {works.map((work, i) => (
         <FullBleedSlide
           key={work.slug}
@@ -30,6 +32,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           locale={locale}
         />
       ))}
+      <Marquee items={['SELECTED WORKS', '2025', 'PORTFOLIO', 'VOL.01']} duration={52} reverse />
     </main>
   );
 }

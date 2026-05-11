@@ -55,7 +55,7 @@ export function SpotlightHero() {
       onMouseMove={onMouseMove}
       onMouseEnter={() => setActive(true)}
       onMouseLeave={() => setActive(false)}
-      className="bg-jet relative h-screen w-full snap-start overflow-hidden"
+      className="bg-jet relative h-screen w-full overflow-hidden"
     >
       {/* photo underneath */}
       <Image
@@ -89,12 +89,28 @@ export function SpotlightHero() {
         2025 — {t('vol')}
       </span>
 
-      {/* giant LOU — visible through the dimmed overlay, gets revealed by spotlight */}
+      {/* giant LOU — chars rise from below with stagger after the loading screen clears */}
       <h1
         aria-label="LOU"
-        className="text-brutal text-cream pointer-events-none absolute inset-0 z-10 grid place-items-center text-[28vw] mix-blend-difference select-none"
+        className="text-brutal text-cream pointer-events-none absolute inset-0 z-10 grid place-items-center text-[28vw] leading-none mix-blend-difference select-none"
       >
-        LOU
+        <span className="flex overflow-hidden">
+          {['L', 'O', 'U'].map((c, i) => (
+            <motion.span
+              key={c}
+              className="inline-block"
+              initial={{ y: '110%' }}
+              animate={{ y: 0 }}
+              transition={{
+                duration: 0.9,
+                delay: 1.5 + i * 0.1,
+                ease: [0.76, 0, 0.24, 1],
+              }}
+            >
+              {c}
+            </motion.span>
+          ))}
+        </span>
       </h1>
 
       {/* scroll cue */}

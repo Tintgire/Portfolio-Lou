@@ -4,8 +4,11 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Anton, JetBrains_Mono } from 'next/font/google';
 import { GsapProvider } from '@/components/motion/GsapProvider';
+import { LenisProvider } from '@/components/motion/LenisProvider';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
+import { CustomCursor } from '@/components/ui/CustomCursor';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { locales, type Locale } from '@/i18n';
 
 export const metadata: Metadata = {
@@ -43,9 +46,13 @@ export default async function LocaleLayout({
       <body>
         <NextIntlClientProvider messages={messages} locale={locale}>
           <GsapProvider>
-            <Nav locale={locale} />
-            {children}
-            <Footer locale={locale} />
+            <LenisProvider>
+              <LoadingScreen />
+              <CustomCursor />
+              <Nav locale={locale} />
+              {children}
+              <Footer locale={locale} />
+            </LenisProvider>
           </GsapProvider>
         </NextIntlClientProvider>
       </body>
