@@ -8,6 +8,17 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  return {
+    title: 'About — LOU STUDIO',
+    alternates: {
+      canonical: `/${locale}/about`,
+      languages: { fr: '/fr/about', en: '/en/about' },
+    },
+  };
+}
+
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const about = await getAbout(locale as Locale);

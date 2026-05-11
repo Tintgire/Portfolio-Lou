@@ -17,6 +17,25 @@ export async function generateStaticParams() {
   return params;
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}) {
+  const { locale, slug } = await params;
+  const work = await getWorkBySlug(slug, locale as Locale);
+  if (!work) return {};
+  return {
+    title: `${work.title} — LOU STUDIO`,
+    description: `${work.role} · ${work.location} · ${new Date(work.date).getFullYear()}`,
+    alternates: {
+      canonical: `/${locale}/works/${slug}`,
+      languages: { fr: `/fr/works/${slug}`, en: `/en/works/${slug}` },
+    },
+    openGraph: { title: work.title, images: [work.cover], locale, type: 'article' },
+  };
+}
+
 export default async function WorkPage({
   params,
 }: {

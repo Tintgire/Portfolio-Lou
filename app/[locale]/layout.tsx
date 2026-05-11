@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Anton, JetBrains_Mono } from 'next/font/google';
@@ -7,6 +8,10 @@ import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
 import { LipstickRoot } from '@/components/three/LipstickRoot';
 import { locales, type Locale } from '@/i18n';
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://loustudio.fr'),
+};
 
 const anton = Anton({
   subsets: ['latin'],
