@@ -55,3 +55,5 @@ next-env.d.ts
 /source.*
 /projet*.mp4
 /projet*.mov
+# Audio drops at repo root stay local — move them under public/audio/ to ship
+/*.mp3

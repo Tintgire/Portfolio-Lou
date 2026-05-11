@@ -8,6 +8,7 @@ import { LenisProvider } from '@/components/motion/LenisProvider';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { AmbientAudio } from '@/components/ui/AmbientAudio';
 import { locales, type Locale } from '@/i18n';
 
 export const metadata: Metadata = {
@@ -50,6 +51,7 @@ export default async function LocaleLayout({
               <Nav locale={locale} />
               {children}
               <Footer locale={locale} />
+              <AmbientAudio src="/audio/cyberpunk.mp3" volume={0.35} />
             </LenisProvider>
           </GsapProvider>
         </NextIntlClientProvider>

@@ -50,3 +50,13 @@
     text-transform: uppercase;
   }
 }
+
+@keyframes ambient-bar {
+  0%,
+  100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
