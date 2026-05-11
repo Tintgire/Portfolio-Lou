@@ -43,27 +43,18 @@ const PHOTOS: Photo[] = [
   { src: '/gallery/20.jpg', w: 888, h: 888 },
 ];
 
-// Per-photo scroll length. 30vh × 20 photos = 600vh (≈ 6 viewports).
-// Each photo holds for ~60% of its window, with quick fades on either
-// side — fast enough that the user doesn't grind a wheel, slow enough
-// that each shot has its moment.
+// Per-photo scroll length. 30vh × 20 = 600vh.
 const PHOTO_VH = 30;
 const TOTAL = PHOTOS.length;
-const SLOT = 1 / TOTAL;
 
 /**
  * Cinematic sticky-pinned slideshow. The section is `TOTAL × PHOTO_VH`
- * tall; an inner `position: sticky` container fills the viewport and
- * crossfades through the photos as the user scrolls. Each photo gets
- * its moment center-stage: a blurred fullbleed of itself fills the
- * background (Cartier-style ambient glow), the foreground crop is
- * object-contained so no detail is lost, and a brutalist numeral
- * caption rises in alongside.
- *
- * Inspired by the Apple AirPods Pro / Cartier Trinity scrollers. All
- * motion is driven by a single scrollYProgress (offset start-start →
- * end-end) so it's perfectly tied to scroll position — no observers
- * to misfire under Lenis.
+ * tall; an inner `position: sticky` container fills the viewport. As
+ * the user scrolls, we derive a single `activeIndex` from progress and
+ * mount ONLY that slide via `AnimatePresence mode="wait"` — so no two
+ * photos ever coexist in the DOM, and no crossfade can leak a previous
+ * shot behind the current one. The active slide runs a continuous slow
+ * Ken-Burns push-in while mounted.
  */
 export function Gallery() {
   const t = useTranslations('Home');
@@ -73,14 +64,30 @@ export function Gallery() {
     offset: ['start start', 'end end'],
   });
 
-  const [active, setActive] = useState<number | null>(null);
-  const openAt = useCallback((i: number) => setActive(i), []);
-  const close = useCallback(() => setActive(null), []);
+  // Caption + slide both read from a single React state value, kept in
+  // sync with scrollYProgress via useMotionValueEvent. floor(progress *
+  // TOTAL) flips at slot boundaries — same boundary the slide animation
+  // will swap on, so number and image are always 1:1.
+  const indexFloat = useTransform(scrollYProgress, [0, 1], [0, TOTAL]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  useMotionValueEvent(indexFloat, 'change', (latest) => {
+    const next = Math.min(TOTAL - 1, Math.max(0, Math.floor(latest)));
+    setActiveIndex(next);
+  });
+
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const openLightbox = useCallback((i: number) => setLightboxIndex(i), []);
+  const closeLightbox = useCallback(() => setLightboxIndex(null), []);
   const prev = useCallback(
-    () => setActive((i) => (i === null ? null : (i - 1 + TOTAL) % TOTAL)),
+    () => setLightboxIndex((i) => (i === null ? null : (i - 1 + TOTAL) % TOTAL)),
     [],
   );
-  const next = useCallback(() => setActive((i) => (i === null ? null : (i + 1) % TOTAL)), []);
+  const next = useCallback(
+    () => setLightboxIndex((i) => (i === null ? null : (i + 1) % TOTAL)),
+    [],
+  );
+
+  const activePhoto = PHOTOS[activeIndex]!;
 
   return (
     <section
@@ -90,18 +97,14 @@ export function Gallery() {
       style={{ height: `${TOTAL * PHOTO_VH}vh` }}
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
-        {/* Stacked slides — all mounted, opacity-driven crossfade */}
-        {PHOTOS.map((photo, i) => (
-          <Slide
-            key={photo.src}
-            photo={photo}
-            index={i}
-            progress={scrollYProgress}
-            onOpen={() => openAt(i)}
-          />
-        ))}
+        {/* Only the active slide is mounted; AnimatePresence handles
+            exit-then-enter so the old image is gone before the new one
+            appears. mode="wait" guarantees no overlap. */}
+        <AnimatePresence mode="wait">
+          <Slide key={activeIndex} photo={activePhoto} onOpen={() => openLightbox(activeIndex)} />
+        </AnimatePresence>
 
-        {/* Top corner header — always visible, gradient backdrop for legibility */}
+        {/* Top corner header — always visible above slides */}
         <div
           aria-hidden
           className="from-jet/80 pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b to-transparent px-6 pt-10 pb-20 md:px-16 md:pt-14"
@@ -115,12 +118,9 @@ export function Gallery() {
           </h2>
         </div>
 
-        {/* Single caption — derives its index from scroll progress so
-            there's only ever ONE visible numeral on screen (two were
-            briefly overlapping during the slot crossfades). */}
-        <ActiveCaption progress={scrollYProgress} />
+        {/* Numeral caption — also AnimatePresence-driven on activeIndex */}
+        <ActiveCaption index={activeIndex} />
 
-        {/* Bottom-right "view full" hint */}
         <span
           aria-hidden
           className="text-meta text-cream/40 absolute right-6 bottom-12 z-10 md:right-16"
@@ -128,14 +128,13 @@ export function Gallery() {
           CLICK FOR FULLSCREEN
         </span>
 
-        {/* Bottom-edge progress bar */}
         <ProgressBar progress={scrollYProgress} />
       </div>
 
       <Lightbox
         photos={PHOTOS}
-        active={active}
-        onClose={close}
+        active={lightboxIndex}
+        onClose={closeLightbox}
         onPrev={prev}
         onNext={next}
         labels={{
@@ -148,53 +147,18 @@ export function Gallery() {
   );
 }
 
-interface SlideProps {
-  photo: Photo;
-  index: number;
-  progress: MotionValue<number>;
-  onOpen: () => void;
-}
-
-function Slide({ photo, index, progress, onOpen }: SlideProps) {
-  const start = index * SLOT;
-  const end = start + SLOT;
-  // ~15% of each slot is reserved for the fade; the rest is hold.
-  // First slide is fully opaque at progress 0 (entry to section); last
-  // is still opaque at progress 1 (exit) so there's never a blank frame
-  // between two slides.
-  const fade = SLOT * 0.15;
-  const opacity = useTransform(
-    progress,
-    [
-      index === 0 ? 0 : start - fade,
-      start + fade * 0.5,
-      end - fade * 0.5,
-      index === TOTAL - 1 ? 1 : end + fade,
-    ],
-    [index === 0 ? 1 : 0, 1, 1, index === TOTAL - 1 ? 1 : 0],
-  );
-  // Subtle Ken-Burns zoom across the photo's window — every shot gets
-  // a tiny push-in that makes the whole sequence feel directed.
-  const scale = useTransform(progress, [start, end], [1, 1.06]);
-  // Small horizontal slide so each transition is perceivable even on
-  // visually similar carousel shots (e.g. 14/15/16 from the same look).
-  // Photo enters from +6% x, holds at 0, exits to -6% x.
-  const x = useTransform(
-    progress,
-    [
-      index === 0 ? 0 : start - fade,
-      start + fade * 0.5,
-      end - fade * 0.5,
-      index === TOTAL - 1 ? 1 : end + fade,
-    ],
-    [index === 0 ? '0%' : '6%', '0%', '0%', index === TOTAL - 1 ? '0%' : '-6%'],
-  );
-
+function Slide({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
   return (
-    <motion.div style={{ opacity }} className="absolute inset-0">
+    <motion.div
+      initial={{ opacity: 0, x: 32 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -32 }}
+      transition={{ duration: 0.45, ease: [0.76, 0, 0.24, 1] }}
+      className="absolute inset-0"
+    >
       {/* Ambient blurred background — same photo, large blur, low
           opacity → fills the letterboxed bars with the photo's own
-          colour palette (the "cinema room glow") */}
+          colour palette. Lives inside the slide so it leaves with it. */}
       <div className="absolute inset-0">
         <Image
           src={photo.src}
@@ -205,13 +169,15 @@ function Slide({ photo, index, progress, onOpen }: SlideProps) {
         />
       </div>
 
-      {/* Foreground — object-contained so the entire shot reads */}
+      {/* Foreground — slow continuous Ken-Burns push-in while mounted */}
       <motion.button
         type="button"
         onClick={onOpen}
-        style={{ scale, x }}
+        initial={{ scale: 1 }}
+        animate={{ scale: 1.05 }}
+        transition={{ duration: 6, ease: 'linear' }}
         className="absolute inset-0 grid w-full place-items-center p-6 md:p-16"
-        aria-label={`Open photo ${index + 1} of ${TOTAL} fullscreen`}
+        aria-label="Open photo fullscreen"
       >
         <Image
           src={photo.src}
@@ -219,7 +185,7 @@ function Slide({ photo, index, progress, onOpen }: SlideProps) {
           width={photo.w}
           height={photo.h}
           sizes="(min-width: 1024px) 70vw, 90vw"
-          priority={index < 2}
+          priority
           className="max-h-[78vh] w-auto object-contain shadow-[0_30px_120px_rgba(0,0,0,0.7)]"
         />
       </motion.button>
@@ -227,19 +193,7 @@ function Slide({ photo, index, progress, onOpen }: SlideProps) {
   );
 }
 
-function ActiveCaption({ progress }: { progress: MotionValue<number> }) {
-  // Caption index must match the photo whose slot is currently active
-  // (the one fading-in / holding), NOT round-to-nearest of progress.
-  // floor(progress * TOTAL) flips at slot boundaries, which is exactly
-  // when the slide crossfade swaps the dominant photo — so caption and
-  // image change in lockstep instead of half a slot apart.
-  const indexFloat = useTransform(progress, [0, 1], [0, TOTAL]);
-  const [activeIndex, setActiveIndex] = useState(0);
-  useMotionValueEvent(indexFloat, 'change', (latest) => {
-    const next = Math.min(TOTAL - 1, Math.max(0, Math.floor(latest)));
-    setActiveIndex(next);
-  });
-
+function ActiveCaption({ index }: { index: number }) {
   return (
     <div
       aria-hidden
@@ -247,7 +201,7 @@ function ActiveCaption({ progress }: { progress: MotionValue<number> }) {
     >
       <AnimatePresence mode="wait">
         <motion.div
-          key={activeIndex}
+          key={index}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -16 }}
@@ -255,7 +209,7 @@ function ActiveCaption({ progress }: { progress: MotionValue<number> }) {
           className="flex items-end gap-4"
         >
           <span className="text-brutal text-cream text-7xl leading-none md:text-9xl">
-            {String(activeIndex + 1).padStart(2, '0')}
+            {String(index + 1).padStart(2, '0')}
           </span>
           <div className="pb-3 md:pb-5">
             <p className="text-meta text-cream/40">— {String(TOTAL).padStart(2, '0')}</p>
