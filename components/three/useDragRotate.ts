@@ -26,9 +26,11 @@ export function useDragRotate() {
     target.current = applyDragDelta(target.current, delta as [number, number]);
   });
 
-  function lerpToward(factor: number): Rotation {
-    smoothed.current.x += (target.current.x - smoothed.current.x) * factor;
-    smoothed.current.y += (target.current.y - smoothed.current.y) * factor;
+  function lerpToward(factor: number, targetX?: number, targetY?: number): Rotation {
+    const toX = targetX ?? target.current.x;
+    const toY = targetY ?? target.current.y;
+    smoothed.current.x += (toX - smoothed.current.x) * factor;
+    smoothed.current.y += (toY - smoothed.current.y) * factor;
     return smoothed.current;
   }
 

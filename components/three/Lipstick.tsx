@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader, RepeatWrapping, Group, Texture, Vector2 } from 'three';
 import { useDragRotate } from './useDragRotate';
@@ -27,11 +27,26 @@ export function Lipstick() {
       );
   });
 
-  const { bind, lerpToward } = useDragRotate();
+  const { bind, target, lerpToward } = useDragRotate();
+  const pointer = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (window.matchMedia('(max-width: 768px)').matches) return;
+    const handler = (e: PointerEvent) => {
+      const nx = (e.clientX / window.innerWidth) * 2 - 1;
+      const ny = (e.clientY / window.innerHeight) * 2 - 1;
+      pointer.current.y = nx * 0.25;
+      pointer.current.x = ny * 0.15;
+    };
+    window.addEventListener('pointermove', handler);
+    return () => window.removeEventListener('pointermove', handler);
+  }, []);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
-    const rot = lerpToward(0.15);
+    const blendedX = target.current.x + pointer.current.x * 0.3;
+    const blendedY = target.current.y + pointer.current.y * 0.3;
+    const rot = lerpToward(0.08, blendedX, blendedY);
     const idle = Math.sin(t * 0.6) * 0.05;
     group.current.rotation.x = rot.x;
     group.current.rotation.y = rot.y + idle;
