@@ -10,13 +10,17 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
  * GSAP ScrollTrigger so the existing scroll-driven reveal animations stay in
  * sync with the eased scroll position.
  *
- * The long `duration` (1.6s) is intentional — gives the "slow-motion film"
- * feel the brief calls for. Bumping it past 2s starts to feel sluggish.
+ * Duration tuning: 0.9s with an expo-out curve. Most of the motion happens in
+ * the first 30% of the ease, so the perceived "tail" after the user stops
+ * scrolling is ~0.2s — fast enough that the frame-sequence scrub doesn't
+ * appear to keep advancing on its own. Going much shorter (<0.6s) starts to
+ * feel like raw wheel input; going longer (>1.2s) makes the hero video
+ * "ghost forward" after stop.
  */
 export function LenisProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.6,
+      duration: 0.9,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
       wheelMultiplier: 0.9,
