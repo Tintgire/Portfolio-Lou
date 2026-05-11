@@ -32,13 +32,16 @@ export function Hero() {
   const louOpacity = useTransform(scrollYProgress, [0, 0.1, 0.22], [1, 1, 0]);
   const louScale = useTransform(scrollYProgress, [0, 0.22], [1, 0.94]);
 
-  // Manifesto: three lines, each with its own slice of the track.
-  const op1 = useTransform(scrollYProgress, [0.18, 0.28, 0.42, 0.5], [0, 1, 1, 0]);
-  const op2 = useTransform(scrollYProgress, [0.45, 0.56, 0.68, 0.76], [0, 1, 1, 0]);
-  const op3 = useTransform(scrollYProgress, [0.72, 0.82, 0.95, 1], [0, 1, 1, 1]);
-  const y1 = useTransform(scrollYProgress, [0.18, 0.28], ['10%', '0%']);
-  const y2 = useTransform(scrollYProgress, [0.45, 0.56], ['10%', '0%']);
-  const y3 = useTransform(scrollYProgress, [0.72, 0.82], ['10%', '0%']);
+  // Manifesto: four lines, each with its own slice of the track.
+  // 22-44% MAKEUP, 42-64% MATIÈRE/FABRIC, 62-84% FORME/FORM, 82-100% STYLISM (holds at end)
+  const op1 = useTransform(scrollYProgress, [0.22, 0.3, 0.4, 0.46], [0, 1, 1, 0]);
+  const op2 = useTransform(scrollYProgress, [0.43, 0.51, 0.61, 0.67], [0, 1, 1, 0]);
+  const op3 = useTransform(scrollYProgress, [0.63, 0.71, 0.81, 0.87], [0, 1, 1, 0]);
+  const op4 = useTransform(scrollYProgress, [0.83, 0.91, 0.98, 1], [0, 1, 1, 1]);
+  const y1 = useTransform(scrollYProgress, [0.22, 0.3], ['10%', '0%']);
+  const y2 = useTransform(scrollYProgress, [0.43, 0.51], ['10%', '0%']);
+  const y3 = useTransform(scrollYProgress, [0.63, 0.71], ['10%', '0%']);
+  const y4 = useTransform(scrollYProgress, [0.83, 0.91], ['10%', '0%']);
 
   // Scroll cue fades out as soon as the user starts scrolling.
   const cueOpacity = useTransform(scrollYProgress, [0, 0.04], [1, 0]);
@@ -130,6 +133,14 @@ export function Hero() {
                 className="text-brutal text-cream text-[14vw] leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] md:text-[12vw]"
               >
                 {t('manifestoLine3')}
+              </motion.h2>
+            </div>
+            <div className="overflow-hidden">
+              <motion.h2
+                style={{ opacity: op4, y: y4 }}
+                className="text-brutal text-cream text-[14vw] leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] md:text-[12vw]"
+              >
+                {t('manifestoLine4')}
               </motion.h2>
             </div>
           </div>
