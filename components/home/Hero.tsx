@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { motion, useMotionValueEvent, useScroll, useTransform } from 'motion/react';
+import { motion, useScroll, useTransform } from 'motion/react';
 import { TextScramble } from './TextScramble';
 
 const TRACK_VH = 350; // total scroll height of the hero section, in viewport heights
@@ -64,14 +64,33 @@ export function Hero() {
   }, []);
 
   // Scrub the video frame from the scroll progress.
-  useMotionValueEvent(scrollYProgress, 'change', (progress) => {
-    const video = videoRef.current;
-    if (!video || !ready || !duration) return;
-    const target = Math.max(0, Math.min(duration * progress, duration - 0.01));
-    if (Math.abs(video.currentTime - target) > 0.025) {
-      video.currentTime = target;
-    }
-  });
+  //
+  // Critical for fluidity: we DON'T seek on every scroll event (Lenis emits many
+  // per frame). Instead, an rAF loop reads the latest scrollYProgress once per
+  // refresh and seeks at most ~60Hz. Combined with the all-intra encoded MP4
+  // (every frame is a keyframe, so seek is instant), the result is buttery.
+  useEffect(() => {
+    if (!ready || !duration) return;
+    let rafId = 0;
+    let lastSeekTime = -1;
+
+    const tick = () => {
+      const video = videoRef.current;
+      if (video) {
+        const progress = scrollYProgress.get();
+        const target = Math.max(0, Math.min(duration * progress, duration - 0.01));
+        // Only seek if the delta is meaningful — saves the decode pipeline.
+        if (Math.abs(target - lastSeekTime) > 0.02) {
+          video.currentTime = target;
+          lastSeekTime = target;
+        }
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(rafId);
+  }, [ready, duration, scrollYProgress]);
 
   // LOU title is fully visible during the intro window, then fades out so the
   // manifesto can take centre stage.
