@@ -1,0 +1,14 @@
+{
+  "Nav": { "works": "Works", "about": "About", "contact": "Contact" },
+  "Footer": { "rights": "All rights reserved", "instagram": "Instagram" },
+  "Home": { "tagline": "MAKEUP & STYLISM — PARIS", "scroll": "Scroll", "vol": "VOL.01" },
+  "Contact": {
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send",
+    "success": "Message sent.",
+    "error": "Something went wrong."
+  },
+  "Common": { "next": "Next project", "previous": "Previous project", "language": "EN" }
+}
