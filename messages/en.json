@@ -7,7 +7,12 @@
     "vol": "VOL.01",
     "allWorks": "ALL WORKS",
     "manifestoLine1": "MAKEUP.",
-    "manifestoLine2": "STYLISM."
+    "manifestoLine2": "STYLISM.",
+    "gallery": "GALLERY.",
+    "gallerySubtitle": "VISUAL ARCHIVE — SELECTION",
+    "galleryClose": "Close",
+    "galleryPrev": "Previous",
+    "galleryNext": "Next"
   },
   "Contact": {
     "name": "Name",

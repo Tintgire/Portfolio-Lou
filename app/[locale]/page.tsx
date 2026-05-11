@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Hero } from '@/components/home/Hero';
 import { AlternatingProject } from '@/components/home/AlternatingProject';
 import { ProjectGrid } from '@/components/home/ProjectGrid';
+import { Gallery } from '@/components/home/Gallery';
 import { Marquee } from '@/components/ui/Marquee';
 import { getAllWorks, type Locale } from '@/lib/works';
 
@@ -42,6 +43,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
       {/* Finale: every project as a grid card */}
       <ProjectGrid works={works} locale={locale} title={t('allWorks')} />
+
+      {/* Editorial photo archive — masonry of every shoot Lou has filed */}
+      <Gallery />
 
       <Marquee items={['SELECTED WORKS', '2025', 'PORTFOLIO', 'VOL.01']} duration={52} reverse />
     </main>
