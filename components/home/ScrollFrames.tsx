@@ -17,17 +17,17 @@ interface Props {
 
 /**
  * Frame-sequence scroll player — the Awwwards-tier alternative to scrubbing a
- * `<video>`. Every frame is preloaded as a decoded `<img>` and drawn into a
- * `<canvas>` based on scroll progress. Because the browser only has to
- * `drawImage()` an already-decoded bitmap (no video decode pipeline), the
- * swap is sub-millisecond and the scrub is butter-smooth even on mid-range
- * laptops.
+ * `<video>`. Every frame is preloaded **and** GPU-decoded (via `Image.decode()`)
+ * before scrub is enabled. After that, paint is just `drawImage()` on an
+ * already-decoded bitmap (~0.3ms) — no decoder restarts, no keyframe rolls,
+ * no Lenis-induced thrashing.
  *
- * Trade-offs vs. a scrubbed video:
- * - Bandwidth: 200 WebP frames @ 1280px ≈ 6 MB total, lighter than an
- *   equivalent all-intra MP4 (~15 MB).
- * - Decode: image decode happens once on load, vs. on every seek for video.
- * - Latency: zero seek delay; frame swap is one drawImage call.
+ * Why we wait for ALL frames before allowing scrub:
+ *   If we start scrubbing while frames are still streaming in, the user can
+ *   easily scroll past unloaded frames. drawImage() is gated on
+ *   `img.complete`, so it silently keeps the last good frame — looks frozen,
+ *   reads as "choppy". By gating the rAF loop on `decoded === count`, we
+ *   guarantee every scrub position lands on a paintable frame.
  */
 export function ScrollFrames({
   progress,
@@ -38,39 +38,63 @@ export function ScrollFrames({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const framesRef = useRef<(HTMLImageElement | null)[]>([]);
+  const [decoded, setDecoded] = useState(0);
   const [firstReady, setFirstReady] = useState(false);
 
-  // Preload every frame as an Image. The browser caches the decoded bitmap
-  // so subsequent drawImage calls are instant.
+  const ready = decoded >= count;
+
+  // Preload every frame *and force-decode it* so the first drawImage on each
+  // frame doesn't trigger a synchronous decode (which would micro-stutter).
   useEffect(() => {
     const arr: (HTMLImageElement | null)[] = new Array(count).fill(null);
+    framesRef.current = arr;
     let alive = true;
+    let count_ready = 0;
 
     for (let i = 0; i < count; i++) {
       const img = new Image();
       img.decoding = 'async';
-      // i is 0-based; filenames are 1-based, zero-padded to 3 digits
       img.src = `/videos/frames/f-${String(i + 1).padStart(3, '0')}.webp`;
-      img.onload = () => {
-        if (!alive) return;
-        arr[i] = img;
-        // As soon as the first frame is ready, paint it so the canvas isn't blank
-        if (i === 0) {
-          setFirstReady(true);
-        }
-      };
-      // we tolerate per-frame onerror silently — drawing logic guards on null
+      // Force decode (returns a Promise). When it resolves, the bitmap is
+      // ready for drawImage with zero latency on first paint.
+      img
+        .decode()
+        .then(() => {
+          if (!alive) return;
+          arr[i] = img;
+          count_ready++;
+          setDecoded(count_ready);
+          if (i === 0) setFirstReady(true);
+        })
+        .catch(() => {
+          // some images may fail to decode (e.g. cancelled mid-flight); tolerate
+          if (!alive) return;
+          count_ready++;
+          setDecoded(count_ready);
+        });
     }
-    framesRef.current = arr;
     return () => {
       alive = false;
     };
   }, [count]);
 
-  // rAF loop reads scrollYProgress and paints the matching frame at most once
-  // per refresh. Skips paint when the resolved frame index hasn't changed.
+  // Paint the first frame as soon as it's decoded so the section isn't blank
+  // while we wait for the rest to come in.
   useEffect(() => {
     if (!firstReady) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    const first = framesRef.current[0];
+    if (canvas && ctx && first) {
+      ctx.drawImage(first, 0, 0, canvas.width, canvas.height);
+    }
+  }, [firstReady]);
+
+  // rAF scrub loop — only runs once ALL frames are decoded. Each tick paints
+  // the matching frame at most once per refresh; skips when the resolved
+  // frame index hasn't changed.
+  useEffect(() => {
+    if (!ready) return;
     let rafId = 0;
     let lastIndex = -1;
 
@@ -82,7 +106,7 @@ export function ScrollFrames({
         const idx = Math.min(count - 1, Math.floor(p * count));
         if (idx !== lastIndex) {
           const img = framesRef.current[idx];
-          if (img && img.complete) {
+          if (img) {
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             lastIndex = idx;
           }
@@ -92,15 +116,30 @@ export function ScrollFrames({
     };
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [firstReady, progress, count]);
+  }, [ready, progress, count]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={frameWidth}
-      height={frameHeight}
-      className={className}
-      aria-hidden
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        width={frameWidth}
+        height={frameHeight}
+        className={className}
+        aria-hidden
+      />
+      {/* Subtle bottom-edge loading bar while the sequence preloads. Disappears
+          the moment everything is decoded and the scrub is active. */}
+      {!ready && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute bottom-0 left-0 z-10 h-px w-full bg-white/10"
+        >
+          <div
+            className="bg-cream h-full transition-[width] duration-200 ease-out"
+            style={{ width: `${(decoded / count) * 100}%` }}
+          />
+        </div>
+      )}
+    </>
   );
 }
