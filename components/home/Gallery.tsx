@@ -12,7 +12,7 @@ interface Photo {
 }
 
 // 20 archive photos — natural dimensions kept so next/image emits the
-// right intrinsic ratio and the masonry doesn't shift after load.
+// right intrinsic ratio.
 const PHOTOS: Photo[] = [
   { src: '/gallery/01.jpg', w: 1440, h: 1796 },
   { src: '/gallery/02.jpg', w: 1440, h: 1439 },
@@ -36,71 +36,93 @@ const PHOTOS: Photo[] = [
   { src: '/gallery/20.jpg', w: 888, h: 888 },
 ];
 
+// Per-photo scroll length. 30vh × 20 photos = 600vh (≈ 6 viewports).
+// Each photo holds for ~60% of its window, with quick fades on either
+// side — fast enough that the user doesn't grind a wheel, slow enough
+// that each shot has its moment.
+const PHOTO_VH = 30;
+const TOTAL = PHOTOS.length;
+const SLOT = 1 / TOTAL;
+
 /**
- * Editorial photo archive. CSS-multi-column masonry on the home page,
- * each photo revealing on a scroll-driven cascade (no IntersectionObserver
- * — same robust pattern as the AlternatingProject covers, since Lenis
- * sometimes starves the observer). Click anywhere on a photo to open a
- * full-bleed lightbox with prev/next + keyboard nav + swipe.
+ * Cinematic sticky-pinned slideshow. The section is `TOTAL × PHOTO_VH`
+ * tall; an inner `position: sticky` container fills the viewport and
+ * crossfades through the photos as the user scrolls. Each photo gets
+ * its moment center-stage: a blurred fullbleed of itself fills the
+ * background (Cartier-style ambient glow), the foreground crop is
+ * object-contained so no detail is lost, and a brutalist numeral
+ * caption rises in alongside.
+ *
+ * Inspired by the Apple AirPods Pro / Cartier Trinity scrollers. All
+ * motion is driven by a single scrollYProgress (offset start-start →
+ * end-end) so it's perfectly tied to scroll position — no observers
+ * to misfire under Lenis.
  */
 export function Gallery() {
   const t = useTranslations('Home');
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ['start end', 'end start'],
+    offset: ['start start', 'end end'],
   });
 
   const [active, setActive] = useState<number | null>(null);
-  const open = useCallback((i: number) => setActive(i), []);
+  const openAt = useCallback((i: number) => setActive(i), []);
   const close = useCallback(() => setActive(null), []);
   const prev = useCallback(
-    () => setActive((i) => (i === null ? null : (i - 1 + PHOTOS.length) % PHOTOS.length)),
+    () => setActive((i) => (i === null ? null : (i - 1 + TOTAL) % TOTAL)),
     [],
   );
-  const next = useCallback(
-    () => setActive((i) => (i === null ? null : (i + 1) % PHOTOS.length)),
-    [],
-  );
+  const next = useCallback(() => setActive((i) => (i === null ? null : (i + 1) % TOTAL)), []);
 
   return (
     <section
       ref={sectionRef}
       aria-labelledby="gallery-heading"
-      className="bg-jet relative px-6 py-32 md:px-16 md:py-40"
+      className="bg-jet relative"
+      style={{ height: `${TOTAL * PHOTO_VH}vh` }}
     >
-      <header className="mb-16 flex items-end justify-between gap-6 md:mb-24">
-        <div>
-          <p className="text-meta text-cream/50 mb-4">
-            {String(PHOTOS.length).padStart(2, '0')} — {t('gallerySubtitle')}
-          </p>
+      <div className="sticky top-0 h-screen w-full overflow-hidden">
+        {/* Stacked slides — all mounted, opacity-driven crossfade */}
+        {PHOTOS.map((photo, i) => (
+          <Slide
+            key={photo.src}
+            photo={photo}
+            index={i}
+            progress={scrollYProgress}
+            onOpen={() => openAt(i)}
+          />
+        ))}
+
+        {/* Top corner header — always visible, gradient backdrop for legibility */}
+        <div
+          aria-hidden
+          className="from-jet/80 pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b to-transparent px-6 pt-10 pb-20 md:px-16 md:pt-14"
+        >
+          <p className="text-meta text-cream/50 mb-2">{t('gallerySubtitle')}</p>
           <h2
             id="gallery-heading"
-            className="text-brutal text-cream text-6xl leading-[0.9] md:text-8xl lg:text-9xl"
+            className="text-brutal text-cream text-4xl leading-none md:text-6xl lg:text-7xl"
           >
             {t('gallery')}
           </h2>
         </div>
-        <span aria-hidden className="text-meta text-cream/40 hidden md:block">
-          ↓ DRAG · CLICK · SCROLL
-        </span>
-      </header>
 
-      {/* CSS multi-column masonry — photos retain their natural aspect
-          ratio and slot in column-first. Gap is handled via column-gap
-          and a manual bottom-margin on each cell (break-inside avoid
-          keeps a cell from being sliced across columns). */}
-      <div className="gap-x-4 [column-fill:_balance] sm:columns-2 md:columns-3 md:gap-x-6 lg:columns-4">
-        {PHOTOS.map((photo, i) => (
-          <PhotoCell
-            key={photo.src}
-            photo={photo}
-            index={i}
-            total={PHOTOS.length}
-            progress={scrollYProgress}
-            onOpen={() => open(i)}
-          />
+        {/* Numeral captions — one per photo, fades alongside its slide */}
+        {PHOTOS.map((_, i) => (
+          <Caption key={i} index={i} progress={scrollYProgress} />
         ))}
+
+        {/* Bottom-right "view full" hint */}
+        <span
+          aria-hidden
+          className="text-meta text-cream/40 absolute right-6 bottom-12 z-10 md:right-16"
+        >
+          CLICK FOR FULLSCREEN
+        </span>
+
+        {/* Bottom-edge progress bar */}
+        <ProgressBar progress={scrollYProgress} />
       </div>
 
       <Lightbox
@@ -119,54 +141,111 @@ export function Gallery() {
   );
 }
 
-interface PhotoCellProps {
+interface SlideProps {
   photo: Photo;
   index: number;
-  total: number;
   progress: MotionValue<number>;
   onOpen: () => void;
 }
 
-function PhotoCell({ photo, index, total, progress, onOpen }: PhotoCellProps) {
-  // Cascade-reveal driven by section progress. Each photo enters in a
-  // narrow window staggered by its index — all 20 are fully visible by
-  // ~45 % of section scroll, which gives the eye time to register the
-  // wave without making the user wait too long at the bottom.
-  const start = (index / total) * 0.35;
-  const end = start + 0.1;
-  const opacity = useTransform(progress, [start, end], [0, 1]);
-  const y = useTransform(progress, [start, end], [60, 0]);
+function Slide({ photo, index, progress, onOpen }: SlideProps) {
+  const start = index * SLOT;
+  const end = start + SLOT;
+  // ~15% of each slot is reserved for the fade; the rest is hold.
+  // First slide is fully opaque at progress 0 (entry to section); last
+  // is still opaque at progress 1 (exit) so there's never a blank frame
+  // between two slides.
+  const fade = SLOT * 0.15;
+  const opacity = useTransform(
+    progress,
+    [
+      index === 0 ? 0 : start - fade,
+      start + fade * 0.5,
+      end - fade * 0.5,
+      index === TOTAL - 1 ? 1 : end + fade,
+    ],
+    [index === 0 ? 1 : 0, 1, 1, index === TOTAL - 1 ? 1 : 0],
+  );
+  // Subtle Ken-Burns zoom across the photo's window — every shot gets
+  // a tiny push-in that makes the whole sequence feel directed.
+  const scale = useTransform(progress, [start, end], [1, 1.06]);
 
   return (
-    <motion.button
-      type="button"
-      onClick={onOpen}
-      style={{ opacity, y }}
-      className="group relative mb-4 block w-full break-inside-avoid overflow-hidden md:mb-6"
-      aria-label={`Open photo ${index + 1} of ${total}`}
-    >
-      <Image
-        src={photo.src}
-        alt=""
-        width={photo.w}
-        height={photo.h}
-        sizes="(min-width: 1024px) 22vw, (min-width: 640px) 45vw, 92vw"
-        className="h-auto w-full object-cover grayscale-[15%] transition-all duration-700 ease-out group-hover:scale-[1.03] group-hover:grayscale-0"
-      />
-      {/* hover tint — adds a faint cream wash + the photo index in the
-          corner. mix-blend-difference keeps the index readable on any
-          tonal range without a hard contrast plate. */}
-      <span
-        aria-hidden
-        className="from-jet/40 absolute inset-0 bg-gradient-to-t to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-      />
-      <span
-        aria-hidden
-        className="text-meta text-cream/0 group-hover:text-cream/80 absolute bottom-3 left-3 mix-blend-difference transition-colors duration-500"
+    <motion.div style={{ opacity }} className="absolute inset-0">
+      {/* Ambient blurred background — same photo, large blur, low
+          opacity → fills the letterboxed bars with the photo's own
+          colour palette (the "cinema room glow") */}
+      <div className="absolute inset-0">
+        <Image
+          src={photo.src}
+          alt=""
+          fill
+          sizes="100vw"
+          className="scale-110 object-cover opacity-30 blur-3xl"
+        />
+      </div>
+
+      {/* Foreground — object-contained so the entire shot reads */}
+      <motion.button
+        type="button"
+        onClick={onOpen}
+        style={{ scale }}
+        className="absolute inset-0 grid w-full place-items-center p-6 md:p-16"
+        aria-label={`Open photo ${index + 1} of ${TOTAL} fullscreen`}
       >
+        <Image
+          src={photo.src}
+          alt=""
+          width={photo.w}
+          height={photo.h}
+          sizes="(min-width: 1024px) 70vw, 90vw"
+          priority={index < 2}
+          className="max-h-[78vh] w-auto object-contain shadow-[0_30px_120px_rgba(0,0,0,0.7)]"
+        />
+      </motion.button>
+    </motion.div>
+  );
+}
+
+function Caption({ index, progress }: { index: number; progress: MotionValue<number> }) {
+  const start = index * SLOT;
+  const end = start + SLOT;
+  const fade = SLOT * 0.15;
+  const opacity = useTransform(
+    progress,
+    [
+      index === 0 ? 0 : start - fade,
+      start + fade * 0.6,
+      end - fade * 0.6,
+      index === TOTAL - 1 ? 1 : end + fade,
+    ],
+    [index === 0 ? 1 : 0, 1, 1, index === TOTAL - 1 ? 1 : 0],
+  );
+  const y = useTransform(progress, [start - fade, start + fade], [30, 0]);
+
+  return (
+    <motion.div
+      aria-hidden
+      style={{ opacity, y }}
+      className="pointer-events-none absolute bottom-10 left-6 z-10 flex items-end gap-4 md:bottom-14 md:left-16"
+    >
+      <span className="text-brutal text-cream text-7xl leading-none md:text-9xl">
         {String(index + 1).padStart(2, '0')}
       </span>
-    </motion.button>
+      <div className="pb-3 md:pb-5">
+        <p className="text-meta text-cream/40">— {String(TOTAL).padStart(2, '0')}</p>
+        <p className="text-meta text-cream/70 mt-1">MAKEUP · STYLISM</p>
+      </div>
+    </motion.div>
+  );
+}
+
+function ProgressBar({ progress }: { progress: MotionValue<number> }) {
+  const scaleX = useTransform(progress, [0, 1], [0, 1]);
+  return (
+    <div className="bg-cream/10 absolute right-0 bottom-0 left-0 z-10 h-px">
+      <motion.div style={{ scaleX }} className="bg-cream/70 h-full origin-left" />
+    </div>
   );
 }
 
@@ -180,7 +259,6 @@ interface LightboxProps {
 }
 
 function Lightbox({ photos, active, onClose, onPrev, onNext, labels }: LightboxProps) {
-  // Lock body scroll while the lightbox is open + bind keyboard nav.
   useEffect(() => {
     if (active === null) return;
     const onKey = (e: KeyboardEvent) => {
@@ -208,7 +286,6 @@ function Lightbox({ photos, active, onClose, onPrev, onNext, labels }: LightboxP
           className="bg-jet/95 fixed inset-0 z-[300] backdrop-blur-md"
           onClick={onClose}
         >
-          {/* photo crossfade keyed on index */}
           <AnimatePresence mode="wait">
             <motion.div
               key={active}
@@ -231,7 +308,6 @@ function Lightbox({ photos, active, onClose, onPrev, onNext, labels }: LightboxP
             </motion.div>
           </AnimatePresence>
 
-          {/* top bar — count + close */}
           <div className="text-cream/80 absolute top-0 right-0 left-0 z-10 flex items-center justify-between p-6 md:p-8">
             <span className="text-meta">
               {String(active + 1).padStart(2, '0')} / {String(photos.length).padStart(2, '0')}
@@ -254,7 +330,6 @@ function Lightbox({ photos, active, onClose, onPrev, onNext, labels }: LightboxP
             </button>
           </div>
 
-          {/* prev / next */}
           <button
             type="button"
             onClick={(e) => {
