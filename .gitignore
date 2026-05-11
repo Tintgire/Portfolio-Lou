@@ -50,3 +50,6 @@ next-env.d.ts
 # IDE
 .vscode/
 .idea/
+
+# Hero source video — frames extracted into public/videos/frames are committed; source itself is local-only
+/source.*
