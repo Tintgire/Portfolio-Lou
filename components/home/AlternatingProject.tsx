@@ -55,11 +55,7 @@ export function AlternatingProject({ work, index, total, side, locale }: Props) 
 
   const imageColumn = (
     <Link href={`/${locale}/works/${work.slug}`} className="group block">
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={viewport}
-        transition={{ duration: 0.9, ease }}
+      <div
         className="relative aspect-[4/5] overflow-hidden"
         style={{ viewTransitionName: `cover-${work.slug}` }}
       >
@@ -85,7 +81,7 @@ export function AlternatingProject({ work, index, total, side, locale }: Props) 
             />
           )}
         </motion.div>
-      </motion.div>
+      </div>
     </Link>
   );
 
