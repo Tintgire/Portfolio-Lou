@@ -4,6 +4,7 @@ import { locales } from '@/i18n';
 import { Cover } from '@/components/work/Cover';
 import { Intro } from '@/components/work/Intro';
 import { Credits } from '@/components/work/Credits';
+import { MediaBlock } from '@/components/work/MediaBlock';
 
 export async function generateStaticParams() {
   const params: { locale: string; slug: string }[] = [];
@@ -26,6 +27,13 @@ export default async function WorkPage({
     <main className="bg-jet text-cream relative">
       <Cover work={work} />
       <Intro body={work.bodyMdx} />
+      {work.media.length > 0 && (
+        <section className="grid grid-cols-12 gap-2 px-2 md:px-4">
+          {work.media.map((m, i) => (
+            <MediaBlock key={`${m.src}-${i}`} media={m} />
+          ))}
+        </section>
+      )}
       <Credits work={work} />
     </main>
   );
