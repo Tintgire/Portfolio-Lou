@@ -6,7 +6,7 @@ import { motion, useScroll, useTransform } from 'motion/react';
 import { TextScramble } from './TextScramble';
 import { ScrollFrames } from './ScrollFrames';
 
-const TRACK_VH = 200; // total scroll height of the hero section, in viewport heights
+const TRACK_VH = 300; // total scroll height of the hero section, in viewport heights
 const FRAME_COUNT = 192; // matches the WebP frames extracted under /videos/frames/
 const EASE_CINEMA = [0.76, 0, 0.24, 1] as const;
 
