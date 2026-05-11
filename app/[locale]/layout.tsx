@@ -6,7 +6,6 @@ import { Anton, JetBrains_Mono } from 'next/font/google';
 import { GsapProvider } from '@/components/motion/GsapProvider';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
-import { LipstickRoot } from '@/components/three/LipstickRoot';
 import { locales, type Locale } from '@/i18n';
 
 export const metadata: Metadata = {
@@ -44,7 +43,6 @@ export default async function LocaleLayout({
       <body>
         <NextIntlClientProvider messages={messages} locale={locale}>
           <GsapProvider>
-            <LipstickRoot />
             <Nav locale={locale} />
             {children}
             <Footer locale={locale} />
