@@ -56,10 +56,10 @@ export function AlternatingProject({ work, index, total, side, locale }: Props) 
   const imageColumn = (
     <Link href={`/${locale}/works/${work.slug}`} className="group block">
       <motion.div
-        initial={{ clipPath: 'inset(0 0 100% 0)' }}
-        whileInView={{ clipPath: 'inset(0 0 0 0)' }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
         viewport={viewport}
-        transition={{ duration: 1.2, ease }}
+        transition={{ duration: 0.9, ease }}
         className="relative aspect-[4/5] overflow-hidden"
         style={{ viewTransitionName: `cover-${work.slug}` }}
       >
@@ -72,7 +72,7 @@ export function AlternatingProject({ work, index, total, side, locale }: Props) 
               muted
               loop
               playsInline
-              preload="metadata"
+              preload="auto"
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
             />
           ) : (
