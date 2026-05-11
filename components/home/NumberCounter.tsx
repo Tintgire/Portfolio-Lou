@@ -19,7 +19,7 @@ interface Props {
  */
 export function NumberCounter({ value, digits = 2, duration = 1.4, className }: Props) {
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-25%' });
+  const inView = useInView(ref, { once: true, amount: 0.3 });
   const [display, setDisplay] = useState<string>('0'.repeat(digits));
 
   useEffect(() => {
