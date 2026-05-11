@@ -37,6 +37,11 @@ export function AlternatingProject({ work, index, total, side, locale }: Props) 
     offset: ['start end', 'end start'],
   });
   const imageY = useTransform(scrollYProgress, [0, 1], ['-8%', '8%']);
+  // Cover fade-in driven by the same scroll progress that runs the parallax.
+  // 0.05 → 0.22 : invisible just as the section starts entering, fully
+  // opaque well before it's centred. No IntersectionObserver involved → no
+  // Lenis-related misfire.
+  const coverOpacity = useTransform(scrollYProgress, [0.05, 0.22], [0, 1]);
 
   // First paragraph of the MDX body, trimmed. Used as the card excerpt.
   const excerpt =
@@ -55,9 +60,9 @@ export function AlternatingProject({ work, index, total, side, locale }: Props) 
 
   const imageColumn = (
     <Link href={`/${locale}/works/${work.slug}`} className="group block">
-      <div
+      <motion.div
         className="relative aspect-[4/5] overflow-hidden"
-        style={{ viewTransitionName: `cover-${work.slug}` }}
+        style={{ viewTransitionName: `cover-${work.slug}`, opacity: coverOpacity }}
       >
         <motion.div className="absolute inset-[-8%]" style={{ y: imageY }}>
           {work.coverVideo ? (
@@ -81,7 +86,7 @@ export function AlternatingProject({ work, index, total, side, locale }: Props) 
             />
           )}
         </motion.div>
-      </div>
+      </motion.div>
     </Link>
   );
 
