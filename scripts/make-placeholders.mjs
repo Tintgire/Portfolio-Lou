@@ -13,6 +13,9 @@ for (const slug of slugs) {
   writeFileSync(`public/images/works/${slug}/cover.jpg`, RED_JPEG);
   writeFileSync(`public/images/works/${slug}/01.jpg`, RED_JPEG);
 }
+mkdirSync('public/images/about', { recursive: true });
+writeFileSync('public/images/about/portrait.jpg', RED_JPEG);
+
 console.log('Placeholders created.');
 
 const RED_PNG_1X1 = Buffer.from(
