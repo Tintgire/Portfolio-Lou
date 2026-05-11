@@ -19,6 +19,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
  */
 export function LenisProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
+    // Always land at the top on first paint — disables the browser's
+    // scroll-restoration so a reload from mid-page resets to y=0
+    // (matches the cinematic LoadingScreen / Hero intro every time).
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+
     const lenis = new Lenis({
       duration: 0.9,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -26,6 +34,7 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
       wheelMultiplier: 0.9,
       touchMultiplier: 1.4,
     });
+    lenis.scrollTo(0, { immediate: true });
 
     lenis.on('scroll', ScrollTrigger.update);
     const tick = (time: number) => lenis.raf(time * 1000);
