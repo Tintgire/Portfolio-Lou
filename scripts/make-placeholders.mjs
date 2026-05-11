@@ -14,3 +14,10 @@ for (const slug of slugs) {
   writeFileSync(`public/images/works/${slug}/01.jpg`, RED_JPEG);
 }
 console.log('Placeholders created.');
+
+const RED_PNG_1X1 = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==',
+  'base64',
+);
+writeFileSync('public/lipstick-fallback.png', RED_PNG_1X1);
+console.log('lipstick-fallback.png created.');
