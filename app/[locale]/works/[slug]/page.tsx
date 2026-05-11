@@ -5,6 +5,8 @@ import { Cover } from '@/components/work/Cover';
 import { Intro } from '@/components/work/Intro';
 import { Credits } from '@/components/work/Credits';
 import { MediaBlock } from '@/components/work/MediaBlock';
+import { NextProject } from '@/components/work/NextProject';
+import { KeyboardNav } from '@/components/work/KeyboardNav';
 
 export async function generateStaticParams() {
   const params: { locale: string; slug: string }[] = [];
@@ -23,6 +25,12 @@ export default async function WorkPage({
   const { locale, slug } = await params;
   const work = await getWorkBySlug(slug, locale as Locale);
   if (!work) notFound();
+
+  const all = await getAllWorks(locale as Locale);
+  const idx = all.findIndex((w) => w.slug === slug);
+  const prev = idx > 0 ? all[idx - 1] : undefined;
+  const next = work.nextSlug ? await getWorkBySlug(work.nextSlug, locale as Locale) : undefined;
+
   return (
     <main className="bg-jet text-cream relative">
       <Cover work={work} />
@@ -35,6 +43,11 @@ export default async function WorkPage({
         </section>
       )}
       <Credits work={work} />
+      <NextProject work={work} locale={locale} />
+      <KeyboardNav
+        nextHref={next ? `/${locale}/works/${next.slug}` : undefined}
+        prevHref={prev ? `/${locale}/works/${prev.slug}` : undefined}
+      />
     </main>
   );
 }
