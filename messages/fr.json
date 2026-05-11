@@ -1,7 +1,12 @@
 {
   "Nav": { "works": "Travaux", "about": "À propos", "contact": "Contact" },
   "Footer": { "rights": "Tous droits réservés", "instagram": "Instagram" },
-  "Home": { "tagline": "MAKEUP & STYLISM — PARIS", "scroll": "Faire défiler", "vol": "VOL.01" },
+  "Home": {
+    "tagline": "MAKEUP & STYLISM — PARIS",
+    "scroll": "Faire défiler",
+    "vol": "VOL.01",
+    "allWorks": "TOUS LES PROJETS"
+  },
   "Contact": {
     "name": "Nom",
     "email": "Email",

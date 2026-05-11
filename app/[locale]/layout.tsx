@@ -7,7 +7,6 @@ import { GsapProvider } from '@/components/motion/GsapProvider';
 import { LenisProvider } from '@/components/motion/LenisProvider';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
-import { CustomCursor } from '@/components/ui/CustomCursor';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { locales, type Locale } from '@/i18n';
 
@@ -48,7 +47,6 @@ export default async function LocaleLayout({
           <GsapProvider>
             <LenisProvider>
               <LoadingScreen />
-              <CustomCursor />
               <Nav locale={locale} />
               {children}
               <Footer locale={locale} />
