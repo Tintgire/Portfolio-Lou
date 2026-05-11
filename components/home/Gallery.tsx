@@ -176,6 +176,19 @@ function Slide({ photo, index, progress, onOpen }: SlideProps) {
   // Subtle Ken-Burns zoom across the photo's window — every shot gets
   // a tiny push-in that makes the whole sequence feel directed.
   const scale = useTransform(progress, [start, end], [1, 1.06]);
+  // Small horizontal slide so each transition is perceivable even on
+  // visually similar carousel shots (e.g. 14/15/16 from the same look).
+  // Photo enters from +6% x, holds at 0, exits to -6% x.
+  const x = useTransform(
+    progress,
+    [
+      index === 0 ? 0 : start - fade,
+      start + fade * 0.5,
+      end - fade * 0.5,
+      index === TOTAL - 1 ? 1 : end + fade,
+    ],
+    [index === 0 ? '0%' : '6%', '0%', '0%', index === TOTAL - 1 ? '0%' : '-6%'],
+  );
 
   return (
     <motion.div style={{ opacity }} className="absolute inset-0">
@@ -196,7 +209,7 @@ function Slide({ photo, index, progress, onOpen }: SlideProps) {
       <motion.button
         type="button"
         onClick={onOpen}
-        style={{ scale }}
+        style={{ scale, x }}
         className="absolute inset-0 grid w-full place-items-center p-6 md:p-16"
         aria-label={`Open photo ${index + 1} of ${TOTAL} fullscreen`}
       >
@@ -215,15 +228,15 @@ function Slide({ photo, index, progress, onOpen }: SlideProps) {
 }
 
 function ActiveCaption({ progress }: { progress: MotionValue<number> }) {
-  // Map [0, 1] of section progress to [0, TOTAL-1]; rounding gives the
-  // index of the photo that's currently centre-stage. We listen to the
-  // motion value via useMotionValueEvent instead of useTransform so we
-  // can drive a piece of React state (which AnimatePresence needs to
-  // detect the index change and crossfade in/out).
-  const indexFloat = useTransform(progress, [0, 1], [0, TOTAL - 1]);
+  // Caption index must match the photo whose slot is currently active
+  // (the one fading-in / holding), NOT round-to-nearest of progress.
+  // floor(progress * TOTAL) flips at slot boundaries, which is exactly
+  // when the slide crossfade swaps the dominant photo — so caption and
+  // image change in lockstep instead of half a slot apart.
+  const indexFloat = useTransform(progress, [0, 1], [0, TOTAL]);
   const [activeIndex, setActiveIndex] = useState(0);
   useMotionValueEvent(indexFloat, 'change', (latest) => {
-    const next = Math.min(TOTAL - 1, Math.max(0, Math.round(latest)));
+    const next = Math.min(TOTAL - 1, Math.max(0, Math.floor(latest)));
     setActiveIndex(next);
   });
 
