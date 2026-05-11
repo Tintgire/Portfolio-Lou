@@ -30,6 +30,10 @@
     background: var(--color-signal);
     color: var(--color-cream);
   }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.4s;
+  }
 }
 
 @layer utilities {

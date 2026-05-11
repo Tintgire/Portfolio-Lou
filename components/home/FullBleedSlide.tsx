@@ -52,7 +52,11 @@ export function FullBleedSlide({ work, index, total, locale }: Props) {
       className="relative h-screen w-full snap-start overflow-hidden"
       aria-labelledby={`slide-${work.slug}`}
     >
-      <div data-img className="absolute inset-0">
+      <div
+        data-img
+        className="absolute inset-0"
+        style={{ viewTransitionName: `cover-${work.slug}` }}
+      >
         <Image src={work.cover} alt="" fill priority={index === 0} className="object-cover" />
       </div>
       <Link
