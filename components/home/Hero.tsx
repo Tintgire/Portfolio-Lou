@@ -6,7 +6,7 @@ import { motion, useScroll, useTransform } from 'motion/react';
 import { TextScramble } from './TextScramble';
 import { ScrollFrames } from './ScrollFrames';
 
-const TRACK_VH = 300; // total scroll height of the hero section, in viewport heights
+const TRACK_VH = 200; // total scroll height of the hero section, in viewport heights
 const FRAME_COUNT = 192; // matches the WebP frames extracted under /videos/frames/
 const EASE_CINEMA = [0.76, 0, 0.24, 1] as const;
 
@@ -32,13 +32,15 @@ export function Hero() {
   const louOpacity = useTransform(scrollYProgress, [0, 0.1, 0.22], [1, 1, 0]);
   const louScale = useTransform(scrollYProgress, [0, 0.22], [1, 0.94]);
 
-  // Manifesto: two bookend lines with generous scroll windows so they never
-  // get missed on a quick swipe.
-  // 22-52% MAKEUP, 58-100% STYLISM (STYLISM holds visible to the end)
-  const op1 = useTransform(scrollYProgress, [0.22, 0.32, 0.44, 0.52], [0, 1, 1, 0]);
-  const op2 = useTransform(scrollYProgress, [0.58, 0.68, 0.95, 1], [0, 1, 1, 1]);
-  const y1 = useTransform(scrollYProgress, [0.22, 0.32], ['10%', '0%']);
-  const y2 = useTransform(scrollYProgress, [0.58, 0.68], ['10%', '0%']);
+  // Manifesto: two bookend lines that cross-fade so STYLISM lands the moment
+  // MAKEUP starts leaving. STYLISM then holds all the way to the end of the
+  // hero so a fast scroller can't miss it.
+  //   MAKEUP   visible: 25-55%
+  //   STYLISM  visible: 50%→100% (5% crossfade with MAKEUP, then 45% hold)
+  const op1 = useTransform(scrollYProgress, [0.25, 0.34, 0.46, 0.55], [0, 1, 1, 0]);
+  const op2 = useTransform(scrollYProgress, [0.5, 0.6, 0.95, 1], [0, 1, 1, 1]);
+  const y1 = useTransform(scrollYProgress, [0.25, 0.34], ['10%', '0%']);
+  const y2 = useTransform(scrollYProgress, [0.5, 0.6], ['10%', '0%']);
 
   // Scroll cue fades out as soon as the user starts scrolling.
   const cueOpacity = useTransform(scrollYProgress, [0, 0.04], [1, 0]);
