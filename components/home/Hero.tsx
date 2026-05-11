@@ -58,22 +58,32 @@ export function Hero() {
           className="absolute inset-0 h-full w-full object-cover"
         />
 
-        {/* mid-tone dim so the brutalist typography stays readable on any frame */}
-        <div aria-hidden className="bg-jet/45 absolute inset-0" />
+        {/* mid-tone dim + top/bottom vignette so the typography stays readable on any frame */}
+        <div
+          aria-hidden
+          className="from-jet/60 via-jet/15 to-jet/70 absolute inset-0 bg-gradient-to-b"
+        />
 
-        {/* meta corners */}
-        <span className="text-meta text-cream/90 absolute top-6 left-6 z-10 mix-blend-difference">
+        {/* meta corners — solid cream, no blend tricks (artefacts on skin tones) */}
+        <span className="text-meta text-cream absolute top-6 left-6 z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
           <TextScramble text={t('tagline')} duration={1100} delay={1400} />
         </span>
-        <span className="text-meta text-cream/90 absolute right-6 bottom-6 z-10 mix-blend-difference">
+        <span className="text-meta text-cream absolute right-6 bottom-6 z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
           2025 — {t('vol')}
         </span>
 
-        {/* LOU brutaliste — char stagger on mount, fades out as scroll progresses */}
+        {/* LOU brutaliste — outline-only ("magazine cover" look). Char stagger on
+            mount, fades out as the scroll progresses. The transparent fill lets
+            you see THROUGH the letters — the photo becomes part of the type. */}
         <motion.h1
           aria-label="LOU"
-          style={{ opacity: louOpacity, scale: louScale }}
-          className="text-brutal text-cream pointer-events-none absolute inset-0 z-10 grid place-items-center text-[28vw] leading-none mix-blend-difference select-none"
+          style={{
+            opacity: louOpacity,
+            scale: louScale,
+            color: 'transparent',
+            WebkitTextStroke: '2px var(--color-cream)',
+          }}
+          className="text-brutal pointer-events-none absolute inset-0 z-10 grid place-items-center text-[28vw] leading-none select-none"
         >
           <span className="flex overflow-hidden">
             {['L', 'O', 'U'].map((c, i) => (
@@ -94,13 +104,14 @@ export function Hero() {
           </span>
         </motion.h1>
 
-        {/* Manifesto — 3 stacked lines, each in its own scroll window */}
+        {/* Manifesto — solid cream over the dim, with a subtle drop shadow for
+            edge contrast against any frame. */}
         <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center px-6">
           <div className="flex flex-col items-center text-center">
             <div className="overflow-hidden">
               <motion.h2
                 style={{ opacity: op1, y: y1 }}
-                className="text-brutal text-cream text-[14vw] leading-none mix-blend-difference md:text-[12vw]"
+                className="text-brutal text-cream text-[14vw] leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] md:text-[12vw]"
               >
                 {t('manifestoLine1')}
               </motion.h2>
@@ -108,7 +119,7 @@ export function Hero() {
             <div className="overflow-hidden">
               <motion.h2
                 style={{ opacity: op2, y: y2 }}
-                className="text-brutal text-cream text-[14vw] leading-none mix-blend-difference md:text-[12vw]"
+                className="text-brutal text-cream text-[14vw] leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] md:text-[12vw]"
               >
                 {t('manifestoLine2')}
               </motion.h2>
@@ -116,7 +127,7 @@ export function Hero() {
             <div className="overflow-hidden">
               <motion.h2
                 style={{ opacity: op3, y: y3 }}
-                className="text-brutal text-cream text-[14vw] leading-none mix-blend-difference md:text-[12vw]"
+                className="text-brutal text-cream text-[14vw] leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] md:text-[12vw]"
               >
                 {t('manifestoLine3')}
               </motion.h2>
@@ -130,7 +141,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 2.4, duration: 0.6 }}
           style={{ opacity: cueOpacity }}
-          className="text-meta text-cream/90 absolute bottom-6 left-1/2 z-10 -translate-x-1/2 animate-pulse mix-blend-difference"
+          className="text-meta text-cream absolute bottom-6 left-1/2 z-10 -translate-x-1/2 animate-pulse drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
         >
           ↓ {t('scroll')}
         </motion.span>
