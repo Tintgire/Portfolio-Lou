@@ -60,13 +60,26 @@ export function AlternatingProject({ work, index, total, side, locale }: Props) 
         style={{ viewTransitionName: `cover-${work.slug}` }}
       >
         <motion.div className="absolute inset-[-8%]" style={{ y: imageY }}>
-          <Image
-            src={work.cover}
-            alt=""
-            fill
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-            sizes="(min-width: 1024px) 60vw, 100vw"
-          />
+          {work.coverVideo ? (
+            <video
+              src={work.coverVideo}
+              poster={work.cover}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+            />
+          ) : (
+            <Image
+              src={work.cover}
+              alt=""
+              fill
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+              sizes="(min-width: 1024px) 60vw, 100vw"
+            />
+          )}
         </motion.div>
       </motion.div>
     </Link>

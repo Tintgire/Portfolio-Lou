@@ -21,6 +21,8 @@ export interface Work {
   role: string;
   team: { photographer?: string; model?: string; [key: string]: string | undefined };
   cover: string;
+  /** Optional looping video used in place of the still cover on the home card. */
+  coverVideo?: string;
   media: Media[];
   nextSlug?: string;
   bodyMdx: string;
@@ -48,6 +50,7 @@ async function readWorkFile(filePath: string): Promise<Work | null> {
       role: data.role,
       team: data.team ?? {},
       cover: data.cover,
+      coverVideo: data.coverVideo,
       media: data.media ?? [],
       nextSlug: data.nextSlug,
       bodyMdx: content,

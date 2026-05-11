@@ -53,3 +53,5 @@ next-env.d.ts
 
 # Hero source video — frames extracted into public/videos/frames are committed; source itself is local-only
 /source.*
+/projet*.mp4
+/projet*.mov
