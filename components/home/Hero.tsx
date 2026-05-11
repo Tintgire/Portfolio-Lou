@@ -27,20 +27,17 @@ export function Hero() {
     offset: ['start start', 'end end'],
   });
 
-  // LOU title is fully visible during the intro window, then fades out so the
-  // manifesto can take centre stage.
-  const louOpacity = useTransform(scrollYProgress, [0, 0.1, 0.22], [1, 1, 0]);
-  const louScale = useTransform(scrollYProgress, [0, 0.22], [1, 0.94]);
+  // LOU title is fully visible during the intro window, then fades out by 18%.
+  const louOpacity = useTransform(scrollYProgress, [0, 0.08, 0.18], [1, 1, 0]);
+  const louScale = useTransform(scrollYProgress, [0, 0.18], [1, 0.94]);
 
-  // Manifesto: two bookend lines that cross-fade so STYLISM lands the moment
-  // MAKEUP starts leaving. STYLISM then holds all the way to the end of the
-  // hero so a fast scroller can't miss it.
-  //   MAKEUP   visible: 25-55%
-  //   STYLISM  visible: 50%→100% (5% crossfade with MAKEUP, then 45% hold)
-  const op1 = useTransform(scrollYProgress, [0.25, 0.34, 0.46, 0.55], [0, 1, 1, 0]);
-  const op2 = useTransform(scrollYProgress, [0.5, 0.6, 0.95, 1], [0, 1, 1, 1]);
-  const y1 = useTransform(scrollYProgress, [0.25, 0.34], ['10%', '0%']);
-  const y2 = useTransform(scrollYProgress, [0.5, 0.6], ['10%', '0%']);
+  // Manifesto windows — MAKEUP early then STYLISM holds to the end.
+  //   MAKEUP    25-42% (8% fade in, 6% hold, 4% fade out)
+  //   STYLISM   42-100% (8% fade in, 50% hold — impossible to miss)
+  const op1 = useTransform(scrollYProgress, [0.25, 0.32, 0.38, 0.42], [0, 1, 1, 0]);
+  const op2 = useTransform(scrollYProgress, [0.42, 0.5, 0.95, 1], [0, 1, 1, 1]);
+  const y1 = useTransform(scrollYProgress, [0.25, 0.32], ['10%', '0%']);
+  const y2 = useTransform(scrollYProgress, [0.42, 0.5], ['10%', '0%']);
 
   // Scroll cue fades out as soon as the user starts scrolling.
   const cueOpacity = useTransform(scrollYProgress, [0, 0.04], [1, 0]);
@@ -106,26 +103,28 @@ export function Hero() {
           </span>
         </motion.h1>
 
-        {/* Manifesto — two bookend lines (MAKEUP early, STYLISM late). Solid
-            cream over the vignette + drop-shadow for edge contrast. */}
-        <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center px-6">
-          <div className="flex flex-col items-center text-center">
-            <div className="overflow-hidden">
-              <motion.h2
-                style={{ opacity: op1, y: y1 }}
-                className="text-brutal text-cream text-[14vw] leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] md:text-[12vw]"
-              >
-                {t('manifestoLine1')}
-              </motion.h2>
-            </div>
-            <div className="overflow-hidden">
-              <motion.h2
-                style={{ opacity: op2, y: y2 }}
-                className="text-brutal text-cream text-[14vw] leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] md:text-[12vw]"
-              >
-                {t('manifestoLine2')}
-              </motion.h2>
-            </div>
+        {/* Manifesto — MAKEUP anchored in the upper third (clearly above where
+            LOU sits at centre), STYLISM anchored around the vertical centre
+            where LOU was. Each in its own overflow-hidden wrapper so the
+            slide-up y motion is mask-clipped. */}
+        <div className="pointer-events-none absolute top-[12%] right-0 left-0 z-10 flex justify-center px-6">
+          <div className="overflow-hidden">
+            <motion.h2
+              style={{ opacity: op1, y: y1 }}
+              className="text-brutal text-cream text-[14vw] leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] md:text-[12vw]"
+            >
+              {t('manifestoLine1')}
+            </motion.h2>
+          </div>
+        </div>
+        <div className="pointer-events-none absolute top-[45%] right-0 left-0 z-10 flex justify-center px-6">
+          <div className="overflow-hidden">
+            <motion.h2
+              style={{ opacity: op2, y: y2 }}
+              className="text-brutal text-cream text-[14vw] leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] md:text-[12vw]"
+            >
+              {t('manifestoLine2')}
+            </motion.h2>
           </div>
         </div>
 
