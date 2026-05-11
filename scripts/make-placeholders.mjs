@@ -7,11 +7,11 @@ const RED_JPEG = Buffer.from(
   'base64',
 );
 
-const slugs = ['bold-lipstick', 'latex-couture'];
+const slugs = ['bold-lipstick', 'latex-couture', 'silhouette-noire'];
 for (const slug of slugs) {
-  mkdirSync(`public/images/works/${slug}`, { recursive: true });
-  writeFileSync(`public/images/works/${slug}/cover.jpg`, RED_JPEG);
-  writeFileSync(`public/images/works/${slug}/01.jpg`, RED_JPEG);
+  mkdirSync(`public/works/${slug}`, { recursive: true });
+  writeFileSync(`public/works/${slug}/cover.jpg`, RED_JPEG);
+  writeFileSync(`public/works/${slug}/01.jpg`, RED_JPEG);
 }
 mkdirSync('public/images/about', { recursive: true });
 writeFileSync('public/images/about/portrait.jpg', RED_JPEG);
