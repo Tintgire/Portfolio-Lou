@@ -31,13 +31,15 @@ export function Hero() {
   const louOpacity = useTransform(scrollYProgress, [0, 0.08, 0.18], [1, 1, 0]);
   const louScale = useTransform(scrollYProgress, [0, 0.18], [1, 0.94]);
 
-  // Manifesto windows — MAKEUP early then STYLISM holds to the end.
-  //   MAKEUP    25-42% (8% fade in, 6% hold, 4% fade out)
-  //   STYLISM   42-100% (8% fade in, 50% hold — impossible to miss)
-  const op1 = useTransform(scrollYProgress, [0.25, 0.32, 0.38, 0.42], [0, 1, 1, 0]);
-  const op2 = useTransform(scrollYProgress, [0.42, 0.5, 0.95, 1], [0, 1, 1, 1]);
-  const y1 = useTransform(scrollYProgress, [0.25, 0.32], ['10%', '0%']);
-  const y2 = useTransform(scrollYProgress, [0.42, 0.5], ['10%', '0%']);
+  // Manifesto windows — MAKEUP arrives right as LOU exits, STYLISM picks up
+  // around 1/3 of the scroll and HOLDS for the remaining 2/3 — impossible to
+  // miss even on a quick swipe.
+  //   MAKEUP    20-35% (5% fade in, 7% hold, 3% fade out)
+  //   STYLISM   33-100% (7% fade in, 60% hold)
+  const op1 = useTransform(scrollYProgress, [0.2, 0.25, 0.32, 0.35], [0, 1, 1, 0]);
+  const op2 = useTransform(scrollYProgress, [0.33, 0.4, 0.95, 1], [0, 1, 1, 1]);
+  const y1 = useTransform(scrollYProgress, [0.2, 0.25], ['10%', '0%']);
+  const y2 = useTransform(scrollYProgress, [0.33, 0.4], ['10%', '0%']);
 
   // Scroll cue fades out as soon as the user starts scrolling.
   const cueOpacity = useTransform(scrollYProgress, [0, 0.04], [1, 0]);
@@ -107,7 +109,7 @@ export function Hero() {
             LOU sits at centre), STYLISM anchored around the vertical centre
             where LOU was. Each in its own overflow-hidden wrapper so the
             slide-up y motion is mask-clipped. */}
-        <div className="pointer-events-none absolute top-[12%] right-0 left-0 z-10 flex justify-center px-6">
+        <div className="pointer-events-none absolute top-[18%] right-0 left-0 z-10 flex justify-center px-6">
           <div className="overflow-hidden">
             <motion.h2
               style={{ opacity: op1, y: y1 }}
