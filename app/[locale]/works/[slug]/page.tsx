@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation';
 import { getAllWorks, getWorkBySlug, type Locale } from '@/lib/works';
 import { locales } from '@/i18n';
+import { Cover } from '@/components/work/Cover';
+import { Intro } from '@/components/work/Intro';
+import { Credits } from '@/components/work/Credits';
 
 export async function generateStaticParams() {
   const params: { locale: string; slug: string }[] = [];
@@ -21,8 +24,9 @@ export default async function WorkPage({
   if (!work) notFound();
   return (
     <main className="bg-jet text-cream relative">
-      <h1 className="text-brutal p-10 text-7xl">{work.title}</h1>
-      <pre className="p-10 text-xs">{JSON.stringify(work, null, 2)}</pre>
+      <Cover work={work} />
+      <Intro body={work.bodyMdx} />
+      <Credits work={work} />
     </main>
   );
 }
