@@ -9,68 +9,72 @@ interface Props {
 }
 
 /**
- * Background music that starts the moment the page loads — muted — and
- * un-mutes on the very first user gesture (or via the chip).
+ * Background music that starts on the first user gesture and can be
+ * toggled via a bottom-left chip.
  *
- * Why muted autoplay? Every major browser blocks autoplay of audible
- * media until the page has received a user gesture, but muted playback
- * is always allowed. So the audio element loops silently from t=0; on
- * the first pointer/key/touch/wheel/scroll anywhere on the page, we set
- * `audio.muted = false` and the user hears the music without any
- * perceived latency between their gesture and the sound starting.
+ * Why play/pause instead of muted/unmuted? Setting `audio.muted = false`
+ * doesn't auto-resume a paused element — and the optimistic muted
+ * autoplay we attempt at mount may be silently rejected by the browser,
+ * leaving the element paused. In that case unmuting later would just
+ * flip a flag without producing any sound. Driving everything off
+ * play()/pause() (and the audio element's `play`/`pause` events as the
+ * canonical state source) means whenever the chip says SOUND, the audio
+ * is actually playing.
  *
- * The chip in the bottom-left also toggles `audio.muted` — never
- * play/pause — so it shares a single source of truth with the auto-
- * unmute path. To avoid a race when the chip itself is the first
- * gesture, the global listener checks the event target and bails on
- * anything inside the button (the chip's onClick handles it instead).
- * A `userActedRef` flag latches once the user has expressed any intent,
- * so a scroll after a manual mute never unwinds the user's choice.
+ * Two safeguards keep the chip predictable:
+ *   1. The window-level "first gesture" listener checks event.target
+ *      and bails on anything inside the chip — the chip's onClick is
+ *      then the only handler that fires, no unmute-then-mute race.
+ *   2. `userActedRef` latches once the user has expressed any intent,
+ *      so a scroll after a manual pause never overrides the user.
  */
 export function AmbientAudio({ src, volume = 0.35 }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const userActedRef = useRef(false);
-  const [muted, setMuted] = useState(true);
+  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
     audio.volume = volume;
     audio.loop = true;
-    audio.muted = true;
-    // Muted autoplay is universally allowed → audio is "running" from t=0.
+
+    // Canonical state source: the audio element itself.
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+
+    // Optimistic play — succeeds when the origin already has media-
+    // engagement credit (subsequent visits). Silently rejected on a
+    // cold visit; the gesture listener below picks up the slack.
     audio.play().catch(() => {});
 
-    // The audio element is the single source of truth — sync React state
-    // off `volumechange` so manual toggle, auto-unmute, and any future
-    // path all funnel through the same channel.
-    const sync = () => setMuted(audio.muted);
-    audio.addEventListener('volumechange', sync);
-
-    const unmute = (e: Event) => {
+    const start = (e: Event) => {
       if (userActedRef.current) return;
       const btn = buttonRef.current;
-      // Bail on gestures that land on the chip — its onClick will do the
-      // right thing; firing here too would cause an unmute-then-mute race.
+      // Bail on gestures that land on the chip — its onClick handles
+      // them directly. Firing here too would race the click handler.
       if (btn && e.target instanceof Node && btn.contains(e.target)) return;
       userActedRef.current = true;
-      audio.muted = false;
+      audio.play().catch(() => {});
     };
 
-    window.addEventListener('pointerdown', unmute);
-    window.addEventListener('keydown', unmute);
-    window.addEventListener('touchstart', unmute);
-    window.addEventListener('wheel', unmute);
-    window.addEventListener('scroll', unmute);
+    window.addEventListener('pointerdown', start);
+    window.addEventListener('keydown', start);
+    window.addEventListener('touchstart', start);
+    window.addEventListener('wheel', start);
+    window.addEventListener('scroll', start);
 
     return () => {
-      audio.removeEventListener('volumechange', sync);
-      window.removeEventListener('pointerdown', unmute);
-      window.removeEventListener('keydown', unmute);
-      window.removeEventListener('touchstart', unmute);
-      window.removeEventListener('wheel', unmute);
-      window.removeEventListener('scroll', unmute);
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+      window.removeEventListener('pointerdown', start);
+      window.removeEventListener('keydown', start);
+      window.removeEventListener('touchstart', start);
+      window.removeEventListener('wheel', start);
+      window.removeEventListener('scroll', start);
     };
   }, [volume]);
 
@@ -78,8 +82,8 @@ export function AmbientAudio({ src, volume = 0.35 }: Props) {
     const audio = audioRef.current;
     if (!audio) return;
     userActedRef.current = true;
-    audio.muted = !audio.muted;
-    // volumechange handler will sync React state
+    if (audio.paused) audio.play().catch(() => {});
+    else audio.pause();
   };
 
   return (
@@ -89,12 +93,12 @@ export function AmbientAudio({ src, volume = 0.35 }: Props) {
         ref={buttonRef}
         type="button"
         onClick={toggle}
-        aria-label={muted ? 'Activer le son' : 'Couper le son'}
-        aria-pressed={!muted}
+        aria-label={playing ? 'Couper le son' : 'Activer le son'}
+        aria-pressed={playing}
         className={`fixed bottom-6 left-6 z-40 flex items-center gap-2.5 rounded-full border px-3 py-2 backdrop-blur-sm transition-colors ${
-          muted
-            ? 'border-cream/10 bg-jet/30 text-cream/40 hover:text-cream/70'
-            : 'border-cream/30 bg-jet/40 text-cream/90 hover:border-cream/60'
+          playing
+            ? 'border-cream/30 bg-jet/40 text-cream/90 hover:border-cream/60'
+            : 'border-cream/10 bg-jet/30 text-cream/40 hover:text-cream/70'
         }`}
       >
         <span className="flex h-3 items-end gap-[3px]">
@@ -106,16 +110,16 @@ export function AmbientAudio({ src, volume = 0.35 }: Props) {
                 width: 3,
                 height: '100%',
                 transformOrigin: 'bottom',
-                transform: muted ? 'scaleY(0.25)' : undefined,
-                animation: muted
-                  ? undefined
-                  : `ambient-bar ${0.8 + i * 0.15}s ease-in-out ${i * 0.1}s infinite`,
+                transform: playing ? undefined : 'scaleY(0.25)',
+                animation: playing
+                  ? `ambient-bar ${0.8 + i * 0.15}s ease-in-out ${i * 0.1}s infinite`
+                  : undefined,
                 transition: 'transform 0.3s ease',
               }}
             />
           ))}
         </span>
-        <span className="text-meta">{muted ? 'MUTED' : 'SOUND'}</span>
+        <span className="text-meta">{playing ? 'SOUND' : 'MUTED'}</span>
       </button>
     </>
   );
