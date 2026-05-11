@@ -1,9 +1,18 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
-import { TextureLoader, RepeatWrapping, Group, Texture, Vector2 } from 'three';
+import {
+  TextureLoader,
+  RepeatWrapping,
+  Group,
+  Texture,
+  Vector2,
+  Color,
+  MeshStandardMaterial,
+} from 'three';
 import { useDragRotate } from './useDragRotate';
+import { useScrollProgress } from './useScrollProgress';
 
 function configureNormalMap(texture: Texture) {
   texture.wrapS = RepeatWrapping;
@@ -29,6 +38,13 @@ export function Lipstick() {
 
   const { bind, target, lerpToward } = useDragRotate();
   const pointer = useRef({ x: 0, y: 0 });
+  const progress = useScrollProgress();
+  const targetColor = useRef(new Color('#ff3b00'));
+  const altColor = useRef(new Color('#d6f700'));
+  const stickMaterial = useMemo(
+    () => new MeshStandardMaterial({ color: '#ff3b00', metalness: 0.1, roughness: 0.3 }),
+    [],
+  );
 
   useEffect(() => {
     if (window.matchMedia('(max-width: 768px)').matches) return;
@@ -50,6 +66,14 @@ export function Lipstick() {
     const idle = Math.sin(t * 0.6) * 0.05;
     group.current.rotation.x = rot.x;
     group.current.rotation.y = rot.y + idle;
+
+    const p = progress.current;
+    group.current.scale.y = 1.2 - p * 0.1;
+    group.current.position.y = -p * 0.5;
+    group.current.rotation.z = p * 0.2;
+
+    const c = targetColor.current.clone().lerp(altColor.current, p);
+    stickMaterial.color.copy(c);
   });
 
   return (
@@ -68,13 +92,11 @@ export function Lipstick() {
         <torusGeometry args={[0.5, 0.05, 16, 64]} />
         <meshStandardMaterial color="#cccccc" metalness={1} roughness={0.15} />
       </mesh>
-      <mesh castShadow position={[0, 0.7, 0]}>
+      <mesh castShadow position={[0, 0.7, 0]} material={stickMaterial}>
         <cylinderGeometry args={[0.42, 0.45, 1.0, 64]} />
-        <meshStandardMaterial color="#ff3b00" metalness={0.1} roughness={0.3} />
       </mesh>
-      <mesh castShadow position={[0, 1.4, 0]}>
+      <mesh castShadow position={[0, 1.4, 0]} material={stickMaterial}>
         <coneGeometry args={[0.42, 0.5, 64]} />
-        <meshStandardMaterial color="#ff3b00" metalness={0.1} roughness={0.3} />
       </mesh>
     </group>
   );
