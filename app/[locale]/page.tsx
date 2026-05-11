@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { Hero } from '@/components/home/Hero';
+import { ScrollVideo } from '@/components/home/ScrollVideo';
 import { AlternatingProject } from '@/components/home/AlternatingProject';
 import { ProjectGrid } from '@/components/home/ProjectGrid';
 import { Marquee } from '@/components/ui/Marquee';
@@ -27,6 +28,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     <main className="relative">
       <Hero />
       <Marquee items={['LOU', 'MAKEUP', 'STYLISM', 'PARIS', 'EDITORIAL']} duration={42} />
+
+      {/* Scroll-driven cinematic — scrubs the video frame-by-frame as you scroll */}
+      <ScrollVideo src="/videos/scroll-makeup.mp4" trackVh={300} />
 
       {/* Alternating cards — one right, one left, one right, one left… */}
       {works.map((work, i) => (
