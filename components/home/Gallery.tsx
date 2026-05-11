@@ -97,12 +97,25 @@ export function Gallery() {
       style={{ height: `${TOTAL * PHOTO_VH}vh` }}
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
-        {/* Only the active slide is mounted; AnimatePresence handles
-            exit-then-enter so the old image is gone before the new one
-            appears. mode="wait" guarantees no overlap. */}
-        <AnimatePresence mode="wait">
-          <Slide key={activeIndex} photo={activePhoto} onOpen={() => openLightbox(activeIndex)} />
-        </AnimatePresence>
+        {/* Ambient blurred background — persistent <Image> whose src
+            swaps as activePhoto changes. The browser caches the decoded
+            bitmap, so this update is instant. No animation queueing. */}
+        <div className="absolute inset-0" aria-hidden>
+          <Image
+            src={activePhoto.src}
+            alt=""
+            fill
+            sizes="100vw"
+            priority
+            className="scale-110 object-cover opacity-30 blur-3xl"
+          />
+        </div>
+
+        {/* Foreground — keyed on activeIndex so each photo runs its
+            own slide-in. No AnimatePresence: the previous foreground
+            is unmounted instantly at swap time, so React never queues
+            animations and no slide can ever be skipped on fast scroll. */}
+        <Slide key={activeIndex} photo={activePhoto} onOpen={() => openLightbox(activeIndex)} />
 
         {/* Top corner header — always visible above slides */}
         <div
@@ -149,47 +162,29 @@ export function Gallery() {
 
 function Slide({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 32 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -32 }}
-      transition={{ duration: 0.45, ease: [0.76, 0, 0.24, 1] }}
-      className="absolute inset-0"
+    <motion.button
+      type="button"
+      onClick={onOpen}
+      initial={{ opacity: 0, x: 24, scale: 1 }}
+      animate={{ opacity: 1, x: 0, scale: 1.05 }}
+      transition={{
+        opacity: { duration: 0.4, ease: [0.76, 0, 0.24, 1] },
+        x: { duration: 0.4, ease: [0.76, 0, 0.24, 1] },
+        scale: { duration: 6, ease: 'linear' },
+      }}
+      className="absolute inset-0 grid w-full place-items-center p-6 md:p-16"
+      aria-label="Open photo fullscreen"
     >
-      {/* Ambient blurred background — same photo, large blur, low
-          opacity → fills the letterboxed bars with the photo's own
-          colour palette. Lives inside the slide so it leaves with it. */}
-      <div className="absolute inset-0">
-        <Image
-          src={photo.src}
-          alt=""
-          fill
-          sizes="100vw"
-          className="scale-110 object-cover opacity-30 blur-3xl"
-        />
-      </div>
-
-      {/* Foreground — slow continuous Ken-Burns push-in while mounted */}
-      <motion.button
-        type="button"
-        onClick={onOpen}
-        initial={{ scale: 1 }}
-        animate={{ scale: 1.05 }}
-        transition={{ duration: 6, ease: 'linear' }}
-        className="absolute inset-0 grid w-full place-items-center p-6 md:p-16"
-        aria-label="Open photo fullscreen"
-      >
-        <Image
-          src={photo.src}
-          alt=""
-          width={photo.w}
-          height={photo.h}
-          sizes="(min-width: 1024px) 70vw, 90vw"
-          priority
-          className="max-h-[78vh] w-auto object-contain shadow-[0_30px_120px_rgba(0,0,0,0.7)]"
-        />
-      </motion.button>
-    </motion.div>
+      <Image
+        src={photo.src}
+        alt=""
+        width={photo.w}
+        height={photo.h}
+        sizes="(min-width: 1024px) 70vw, 90vw"
+        priority
+        className="max-h-[78vh] w-auto object-contain shadow-[0_30px_120px_rgba(0,0,0,0.7)]"
+      />
+    </motion.button>
   );
 }
 
