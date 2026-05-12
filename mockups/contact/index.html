@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Visual Companion — Contact page redesign</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --cream: #f4ead5;
+        --jet: #000000;
+        --signal: #ff3b00;
+        --acid: #d6f700;
+        --stone-1: #2a2522;
+        --stone-2: #4a3f37;
+      }
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+      .text-brutal {
+        font-family: 'Anton', sans-serif;
+        letter-spacing: -0.02em;
+        text-transform: uppercase;
+      }
+      .text-meta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-[var(--jet)] text-[var(--cream)]">
+    <header class="border-b border-white/10 px-8 py-8">
+      <p class="text-meta opacity-60 mb-2">VISUAL COMPANION · 2026-05-12</p>
+      <h1 class="text-brutal text-5xl md:text-7xl">CONTACT REDESIGN — 4 PROPOSITIONS</h1>
+      <p class="mt-4 max-w-2xl text-sm leading-relaxed opacity-70">
+        Page Contact épurée — uniquement email + Instagram (formulaire retiré). Chaque mockup est
+        présenté en mode dark (gauche) et light (droite) pour comparaison.
+      </p>
+    </header>
+
+    <main class="grid grid-cols-1 gap-6 p-8 md:grid-cols-2">
+      <a
+        href="./a-minimal-centered.html"
+        class="group block overflow-hidden border border-white/10 transition-colors hover:border-[var(--signal)]"
+      >
+        <div class="aspect-[16/10] bg-[var(--jet)] p-8">
+          <div class="flex h-full flex-col items-center justify-center text-center">
+            <p class="text-meta opacity-50 mb-6">— A —</p>
+            <h2 class="text-brutal text-3xl md:text-5xl">CONTACT.</h2>
+            <p class="mt-6 text-sm opacity-70">hello@loustudio.fr</p>
+            <p class="text-meta mt-2 opacity-50">@LOU.BOIDIN →</p>
+          </div>
+        </div>
+        <div class="bg-white/[0.02] px-6 py-4">
+          <p class="text-meta opacity-60">A — MINIMAL CENTERED</p>
+          <p class="mt-1 text-sm opacity-80">Tout centré, beaucoup de respiration, éditorial.</p>
+        </div>
+      </a>
+
+      <a
+        href="./b-brutalist-split.html"
+        class="group block overflow-hidden border border-white/10 transition-colors hover:border-[var(--signal)]"
+      >
+        <div class="aspect-[16/10] bg-[var(--jet)]">
+          <div class="grid h-full grid-cols-2">
+            <div class="flex items-center justify-center border-r border-white/10 p-6">
+              <h2 class="text-brutal rotate-[-90deg] text-4xl md:text-6xl">CONTACT</h2>
+            </div>
+            <div class="flex flex-col justify-between p-6">
+              <p class="text-meta opacity-50">— FILE 04</p>
+              <div>
+                <p class="text-brutal text-2xl md:text-3xl">hello@loustudio.fr</p>
+                <p class="text-meta mt-4 opacity-70">@LOU.BOIDIN →</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white/[0.02] px-6 py-4">
+          <p class="text-meta opacity-60">B — BRUTALIST SPLIT</p>
+          <p class="mt-1 text-sm opacity-80">Titre vertical à gauche, contacts à droite.</p>
+        </div>
+      </a>
+
+      <a
+        href="./c-iphone-3d.html"
+        class="group relative block overflow-hidden border border-[var(--signal)]/40 transition-colors hover:border-[var(--signal)]"
+      >
+        <span
+          class="text-meta absolute top-3 right-3 z-10 bg-[var(--signal)] px-2 py-1 text-black"
+          >REQUEST</span
+        >
+        <div class="aspect-[16/10] bg-[var(--jet)] p-8">
+          <div class="grid h-full grid-cols-2 items-center gap-6">
+            <div>
+              <p class="text-meta opacity-50 mb-3">— C —</p>
+              <h2 class="text-brutal text-3xl md:text-5xl leading-none">CONTACT.</h2>
+              <p class="mt-4 text-xs opacity-70">hello@loustudio.fr</p>
+              <p class="text-meta mt-1 opacity-50">@LOU.BOIDIN</p>
+            </div>
+            <div class="flex items-center justify-center" style="perspective: 800px">
+              <div
+                class="relative h-44 w-24 rounded-[1rem] border border-white/30 bg-gradient-to-br from-zinc-800 to-zinc-900 shadow-2xl"
+                style="transform: rotateY(-22deg) rotateX(6deg)"
+              >
+                <div
+                  class="absolute inset-1.5 overflow-hidden rounded-[0.75rem] bg-[url('../../public/gallery/01.jpg')] bg-cover bg-center"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white/[0.02] px-6 py-4">
+          <p class="text-meta opacity-60">C — IPHONE 3D · @LOU.BOIDIN</p>
+          <p class="mt-1 text-sm opacity-80">
+            iPhone tilté en 3D affichant le compte Instagram de Lou. Plus immersif.
+          </p>
+        </div>
+      </a>
+
+      <a
+        href="./d-magazine-spread.html"
+        class="group block overflow-hidden border border-white/10 transition-colors hover:border-[var(--signal)]"
+      >
+        <div class="aspect-[16/10] bg-[var(--jet)] p-6">
+          <div class="grid h-full grid-cols-3 gap-2">
+            <div class="text-brutal flex items-center justify-center text-5xl md:text-7xl">C</div>
+            <div class="text-brutal flex items-center justify-center text-5xl md:text-7xl">O</div>
+            <div class="text-brutal flex items-center justify-center text-5xl md:text-7xl">N</div>
+            <div class="text-brutal flex items-center justify-center text-5xl md:text-7xl">T</div>
+            <div class="text-brutal flex items-center justify-center text-5xl md:text-7xl">A</div>
+            <div class="text-brutal flex items-center justify-center text-5xl md:text-7xl">C</div>
+          </div>
+        </div>
+        <div class="bg-white/[0.02] px-6 py-4">
+          <p class="text-meta opacity-60">D — MAGAZINE SPREAD</p>
+          <p class="mt-1 text-sm opacity-80">
+            Lettres CONTACT en grille géante, infos dans les interstices.
+          </p>
+        </div>
+      </a>
+    </main>
+
+    <footer class="border-t border-white/10 px-8 py-6 text-center text-xs opacity-50">
+      Toutes les maquettes affichent dark mode (gauche) et light mode (droite) côte à côte.
+    </footer>
+  </body>
+</html>
