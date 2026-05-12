@@ -53,7 +53,7 @@ export default function ContactPage() {
 
         {/* Right column — 3D iPhone displaying one of Lou's shots */}
         <div className="relative h-[60vh] w-full md:h-[80vh]">
-          <IPhoneGLBLazy screenImageUrl="/contact/lou-instagram.png" />
+          <IPhoneGLBLazy screenImageUrl="/contact/lou-instagram.jpeg" />
         </div>
       </div>
 
