@@ -5,12 +5,13 @@ import { TextScramble } from '@/components/home/TextScramble';
 
 const HOVER_SCRAMBLE_MS = 450;
 
-// Each link sits on mix-blend-difference at rest (so the label adapts
-// to whatever photo it's over). On hover/focus the blend is dropped
-// and a drop-shadow is applied — same recipe as the "↓ Faire défiler"
-// cue, so the active label reads as a clean true-cream tone.
+// At rest each link is dimmed to 50% under mix-blend-difference — same
+// resting tone as the inactive locale in LangSwitcher (EN when FR is
+// selected). On hover/focus we go to full opacity + mix-blend-normal +
+// the scroll-cue drop-shadow recipe, so the active label pops as a
+// true-cream tone instead of inverting against the photo behind it.
 const NAV_LINK =
-  'mix-blend-difference hover:mix-blend-normal focus-visible:mix-blend-normal hover:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] focus-visible:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] transition-[filter] duration-200';
+  'mix-blend-difference opacity-50 hover:mix-blend-normal hover:opacity-100 hover:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] focus-visible:mix-blend-normal focus-visible:opacity-100 focus-visible:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] transition-[filter,opacity] duration-200';
 
 export function Nav({ locale }: { locale: string }) {
   const t = useTranslations('Nav');
