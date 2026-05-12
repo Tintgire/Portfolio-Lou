@@ -60,7 +60,10 @@ export default function ContactPage() {
             on cramped phones (model becomes a smudge) or stretching
             past 820px on 4K (eats the whole viewport). */}
         <div className="relative h-[55vh] min-h-[360px] w-full md:h-[80vh] md:max-h-[820px]">
-          <IPhoneGLBLazy screenImageUrl="/contact/lou-instagram.jpeg" />
+          <IPhoneGLBLazy
+            screenImageUrl="/contact/lou-instagram.jpeg"
+            screenLink="https://www.instagram.com/lou.boidin/"
+          />
         </div>
       </div>
 

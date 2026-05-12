@@ -10,6 +10,8 @@ const IPhoneGLBInternal = dynamic(() => import('./IPhoneGLB').then((m) => m.IPho
 interface Props {
   modelUrl?: string;
   screenImageUrl?: string;
+  /** If provided, clicking the iPhone's screen opens this URL in a new tab. */
+  screenLink?: string;
 }
 
 export function IPhoneGLBLazy(props: Props) {

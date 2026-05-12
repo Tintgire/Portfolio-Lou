@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { ContactShadows, Environment, OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -12,6 +12,8 @@ interface Props {
   modelUrl?: string;
   /** Optional screenshot/image displayed on the iPhone's screen. */
   screenImageUrl?: string;
+  /** If provided, clicking the iPhone's screen opens this URL in a new tab. */
+  screenLink?: string;
 }
 
 const MODEL_URL_DEFAULT = '/models/iphone_14_pro.glb';
@@ -110,7 +112,15 @@ function makeScreenCanvasTexture(
   return texture;
 }
 
-function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl?: string }) {
+function Device({
+  modelUrl,
+  screenImageUrl,
+  screenLink,
+}: {
+  modelUrl: string;
+  screenImageUrl?: string;
+  screenLink?: string;
+}) {
   const { scene } = useGLTF(modelUrl) as unknown as { scene: Group };
   const topScene = useThree((s) => s.scene);
   const { viewport } = useThree();
@@ -255,18 +265,64 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
     };
   }, [targetMesh, screenTexture, layout, topScene]);
 
+  // Drag-vs-click discrimination on the screen catcher. OrbitControls
+  // captures pointer events for camera rotation; a naïve onClick would
+  // also fire after a drag-rotate and accidentally open the link. We
+  // record the pointer-down screen coords and only treat the gesture
+  // as a click if the pointer ends within a small radius of that point.
+  const pointerDown = useRef<{ x: number; y: number } | null>(null);
+  // Reset the cursor if the component unmounts mid-hover.
+  useEffect(
+    () => () => {
+      document.body.style.cursor = '';
+    },
+    [],
+  );
+
   if (!layout) return null;
 
   return (
     <group rotation={[0, Math.PI - 0.4, 0]} scale={layout.scale}>
       <group position={layout.sceneOffset}>
         <primitive object={scene} />
+        {/* Invisible click-catcher sitting on the iPhone's screen face.
+            Covers ~93% × 98% of the iPhone bbox — same area as the IG
+            decal. Transparent material with opacity 0 still receives
+            raycaster events, so a tap on the displayed Instagram screen
+            opens lou.boidin's profile in a new tab. */}
+        {screenLink && bbox && (
+          <mesh
+            position={[0, 0, -bbox.size.z / 2]}
+            rotation={[0, Math.PI, 0]}
+            onPointerOver={(e) => {
+              e.stopPropagation();
+              document.body.style.cursor = 'pointer';
+            }}
+            onPointerOut={(e) => {
+              e.stopPropagation();
+              document.body.style.cursor = '';
+            }}
+            onPointerDown={(e) => {
+              pointerDown.current = { x: e.clientX, y: e.clientY };
+            }}
+            onPointerUp={(e) => {
+              const down = pointerDown.current;
+              pointerDown.current = null;
+              if (!down) return;
+              if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return;
+              window.open(screenLink, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            <planeGeometry args={[bbox.size.x * 0.93, bbox.size.y * 0.98]} />
+            <meshBasicMaterial transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} />
+          </mesh>
+        )}
       </group>
     </group>
   );
 }
 
-export function IPhoneGLB({ modelUrl = MODEL_URL_DEFAULT, screenImageUrl }: Props) {
+export function IPhoneGLB({ modelUrl = MODEL_URL_DEFAULT, screenImageUrl, screenLink }: Props) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 300);
@@ -280,7 +336,7 @@ export function IPhoneGLB({ modelUrl = MODEL_URL_DEFAULT, screenImageUrl }: Prop
       <directionalLight position={[-4, -1, -2]} intensity={0.5} color="#9aa6b2" />
 
       <Suspense fallback={null}>
-        <Device modelUrl={modelUrl} screenImageUrl={screenImageUrl} />
+        <Device modelUrl={modelUrl} screenImageUrl={screenImageUrl} screenLink={screenLink} />
         <Environment preset="studio" />
       </Suspense>
 
