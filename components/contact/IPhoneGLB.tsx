@@ -2,9 +2,8 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { ContactShadows, Environment, OrbitControls, useGLTF } from '@react-three/drei';
+import { ContactShadows, Environment, OrbitControls, useGLTF, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
-import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js';
 import type { Group, Material, Mesh, MeshStandardMaterial } from 'three';
 
 interface Props {
@@ -42,83 +41,50 @@ function normaliseMaterials(scene: Group) {
 }
 
 /**
- * Builds a CanvasTexture for the iPhone screen: the IG screenshot is
- * cover-fitted into the decal's aspect ratio, drawn on a black
- * background and clipped to a rounded rectangle. The black background
- * blends seamlessly with the iPhone's black bezel where the decal
- * projects past the rounded screen corners.
+ * Builds a rounded-rect ShapeGeometry sized in the local XY plane so it
+ * matches the iPhone's actual visible screen area (rounded corners and
+ * all). UVs are remapped so the supplied texture covers the full
+ * bounding rectangle from (0,0) to (1,1) — the rounded corners simply
+ * mask the texture's edges.
  */
-function makeScreenCanvasTexture(
-  img: HTMLImageElement,
-  decalAspect: number,
-  cornerRadiusFraction: number,
-): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  const HEIGHT = 2048;
-  canvas.height = HEIGHT;
-  canvas.width = Math.round(HEIGHT * decalAspect);
-  const ctx = canvas.getContext('2d')!;
+function makeRoundedScreenGeometry(width: number, height: number, radius: number) {
+  const w = width / 2;
+  const h = height / 2;
+  const r = Math.min(radius, w * 0.99, h * 0.99);
 
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const shape = new THREE.Shape();
+  shape.moveTo(-w + r, -h);
+  shape.lineTo(w - r, -h);
+  shape.quadraticCurveTo(w, -h, w, -h + r);
+  shape.lineTo(w, h - r);
+  shape.quadraticCurveTo(w, h, w - r, h);
+  shape.lineTo(-w + r, h);
+  shape.quadraticCurveTo(-w, h, -w, h - r);
+  shape.lineTo(-w, -h + r);
+  shape.quadraticCurveTo(-w, -h, -w + r, -h);
 
-  const r = canvas.width * cornerRadiusFraction;
-  ctx.beginPath();
-  ctx.moveTo(r, 0);
-  ctx.lineTo(canvas.width - r, 0);
-  ctx.quadraticCurveTo(canvas.width, 0, canvas.width, r);
-  ctx.lineTo(canvas.width, canvas.height - r);
-  ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - r, canvas.height);
-  ctx.lineTo(r, canvas.height);
-  ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - r);
-  ctx.lineTo(0, r);
-  ctx.quadraticCurveTo(0, 0, r, 0);
-  ctx.closePath();
-  ctx.save();
-  ctx.clip();
+  const geometry = new THREE.ShapeGeometry(shape, 24);
 
-  // Cover-fit the IG image inside the rounded rect.
-  const imgAspect = img.width / img.height;
-  const canvasAspect = canvas.width / canvas.height;
-  let drawW: number, drawH: number, drawX: number, drawY: number;
-  if (imgAspect > canvasAspect) {
-    drawH = canvas.height;
-    drawW = drawH * imgAspect;
-    drawX = (canvas.width - drawW) / 2;
-    drawY = 0;
-  } else {
-    drawW = canvas.width;
-    drawH = drawW / imgAspect;
-    drawX = 0;
-    drawY = (canvas.height - drawH) / 2;
+  const positions = geometry.attributes.position!;
+  const uvs = new Float32Array(positions.count * 2);
+  for (let i = 0; i < positions.count; i++) {
+    const x = positions.getX(i);
+    const y = positions.getY(i);
+    uvs[i * 2] = (x + w) / width;
+    uvs[i * 2 + 1] = (y + h) / height;
   }
-  ctx.drawImage(img, drawX, drawY, drawW, drawH);
-  ctx.restore();
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.minFilter = THREE.LinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-  texture.anisotropy = 8;
-  texture.needsUpdate = true;
-  return texture;
+  geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  geometry.computeVertexNormals();
+  return geometry;
 }
 
 function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl?: string }) {
   const { scene } = useGLTF(modelUrl) as unknown as { scene: Group };
   const { viewport } = useThree();
-
-  // Load the IG image manually so we can composite it on a canvas with
-  // rounded corners. useTexture would hand us a Three texture wrapping
-  // the raw image, but we need pixel-level control for the rounded mask.
-  const [igImage, setIgImage] = useState<HTMLImageElement | null>(null);
-  useEffect(() => {
-    if (!screenImageUrl) return;
-    const img = new window.Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => setIgImage(img);
-    img.src = screenImageUrl;
-  }, [screenImageUrl]);
+  // Hooks rules require the texture hook to run unconditionally. We pass
+  // an empty placeholder when no screen image is configured; the plane
+  // itself is conditionally rendered below.
+  const screenTexture = useTexture(screenImageUrl ?? '/contact/.placeholder.png', () => undefined);
 
   useEffect(() => {
     if (scene) normaliseMaterials(scene);
@@ -142,95 +108,43 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
     return {
       scale: targetHeight / longest,
       sceneOffset: [-centre.x, -centre.y, -centre.z] as [number, number, number],
+      screenWidth: size.x * 0.93,
+      screenHeight: size.y * 0.98,
+      screenRadius: size.x * 0.18,
+      screenZ: -size.z / 2,
+      screenAspect: (size.x * 0.93) / (size.y * 0.98),
     };
   }, [bbox, viewport.height]);
 
-  // Find the iPhone mesh in the loaded scene — single-mesh model so
-  // the first hit is always the body.
-  const targetMesh = useMemo<Mesh | null>(() => {
-    if (!scene) return null;
-    const meshes: Mesh[] = [];
-    scene.traverse((obj) => {
-      const m = obj as Mesh;
-      if (m.isMesh) meshes.push(m);
-    });
-    return meshes[0] ?? null;
-  }, [scene]);
-
-  // Build the rounded-corner screen texture from the IG image. The
-  // decal area is 93% × 98% of the iPhone bbox (calibrated visually);
-  // 18% corner radius matches the iPhone 14 Pro screen curvature.
-  const screenTexture = useMemo(() => {
-    if (!igImage) return null;
-    const decalAspect = (0.93 * 0.0836) / (0.98 * 0.171);
-    return makeScreenCanvasTexture(igImage, decalAspect, 0.18);
-  }, [igImage]);
-
-  // Project the screen texture onto the iPhone mesh via DecalGeometry.
-  // The decal is computed from the mesh's actual surface, so it
-  // literally IS part of the iPhone's geometry — no parallax, no
-  // "sticker on top" feel when the device rotates. The decal mesh is
-  // attached as a child of the target mesh so it inherits every
-  // transform (group rotation, scale, OrbitControls drag).
+  // Configure the screen texture once it's loaded + once we know the
+  // screen aspect ratio: sRGB colour, centre-crop to fit the screen
+  // dimensions so the IG screenshot isn't squashed.
   useEffect(() => {
-    if (!targetMesh || !screenTexture) return;
-
-    targetMesh.updateMatrixWorld(true);
-
-    if (!targetMesh.geometry.boundingBox) {
-      targetMesh.geometry.computeBoundingBox();
+    if (!layout || !screenImageUrl) return;
+    /* eslint-disable react-hooks/immutability */
+    screenTexture.colorSpace = THREE.SRGBColorSpace;
+    screenTexture.center.set(0.5, 0.5);
+    screenTexture.wrapS = THREE.ClampToEdgeWrapping;
+    screenTexture.wrapT = THREE.ClampToEdgeWrapping;
+    const img = screenTexture.image as { width?: number; height?: number } | null | undefined;
+    const photoAspect = (img?.width ?? 1170) / (img?.height ?? 2532);
+    if (photoAspect > layout.screenAspect) {
+      const cover = layout.screenAspect / photoAspect;
+      screenTexture.repeat.set(cover, 1);
+      screenTexture.offset.set((1 - cover) / 2, 0);
+    } else {
+      const cover = photoAspect / layout.screenAspect;
+      screenTexture.repeat.set(1, cover);
+      screenTexture.offset.set(0, (1 - cover) / 2);
     }
-    const localBbox = targetMesh.geometry.boundingBox!;
-    const localCentre = new THREE.Vector3();
-    const localSize = new THREE.Vector3();
-    localBbox.getCenter(localCentre);
-    localBbox.getSize(localSize);
+    screenTexture.needsUpdate = true;
+    /* eslint-enable react-hooks/immutability */
+  }, [screenTexture, layout, screenImageUrl]);
 
-    // Screen face sits at the most -Z point of the mesh (model's
-    // native orientation faces -Z).
-    const localFront = new THREE.Vector3(
-      localCentre.x,
-      localCentre.y,
-      localCentre.z - localSize.z / 2,
-    );
-    const worldFront = localFront.clone().applyMatrix4(targetMesh.matrixWorld);
-
-    // Orientation = mesh's world rotation, so the decal projects along
-    // the mesh's local -Z direction (the screen normal).
-    const meshRotation = new THREE.Quaternion();
-    const meshTranslation = new THREE.Vector3();
-    const meshScale = new THREE.Vector3();
-    targetMesh.matrixWorld.decompose(meshTranslation, meshRotation, meshScale);
-    const orientation = new THREE.Euler().setFromQuaternion(meshRotation);
-
-    // Decal volume in WORLD space, with depth large enough to catch
-    // every triangle of the front face regardless of subtle Z variation.
-    const decalSize = new THREE.Vector3(
-      localSize.x * meshScale.x * 0.93,
-      localSize.y * meshScale.y * 0.98,
-      localSize.z * meshScale.z * 1.5,
-    );
-
-    const decalGeo = new DecalGeometry(targetMesh, worldFront, orientation, decalSize);
-
-    const decalMat = new THREE.MeshBasicMaterial({
-      map: screenTexture,
-      toneMapped: false,
-      polygonOffset: true,
-      polygonOffsetFactor: -4,
-      polygonOffsetUnits: -4,
-    });
-
-    const decal = new THREE.Mesh(decalGeo, decalMat);
-    decal.name = '__ig_decal';
-    targetMesh.add(decal);
-
-    return () => {
-      targetMesh.remove(decal);
-      decalGeo.dispose();
-      decalMat.dispose();
-    };
-  }, [targetMesh, screenTexture]);
+  const screenGeometry = useMemo(() => {
+    if (!layout) return null;
+    return makeRoundedScreenGeometry(layout.screenWidth, layout.screenHeight, layout.screenRadius);
+  }, [layout]);
 
   if (!layout) return null;
 
@@ -238,6 +152,33 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
     <group rotation={[0, Math.PI - 0.4, 0]} scale={layout.scale}>
       <group position={layout.sceneOffset}>
         <primitive object={scene} />
+        {screenImageUrl && screenGeometry && (
+          <mesh
+            geometry={screenGeometry}
+            position={[0, 0, layout.screenZ]}
+            rotation={[0, Math.PI, 0]}
+          >
+            {/*
+              Matte screen that responds to the scene's lighting EXACTLY
+              like the iPhone's matte body parts: roughness 0.85, no
+              metalness, no emissive. When the device rotates and the
+              titanium body darkens on the shadowed side, the screen
+              darkens with it — that shared light response is what sells
+              the "attached to the surface" feel without ever looking
+              like a glowing sticker. PolygonOffset eliminates z-fighting
+              against the baked screen pixels underneath.
+            */}
+            <meshStandardMaterial
+              map={screenTexture}
+              toneMapped={false}
+              roughness={0.85}
+              metalness={0}
+              polygonOffset
+              polygonOffsetFactor={-2}
+              polygonOffsetUnits={-2}
+            />
+          </mesh>
+        )}
       </group>
     </group>
   );
