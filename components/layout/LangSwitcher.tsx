@@ -15,7 +15,7 @@ export function LangSwitcher({ locale }: { locale: string }) {
           {i > 0 && <span aria-hidden>/</span>}
           <Link
             href={`/${l}${stripped}`}
-            className={`transition-opacity duration-300 hover:opacity-100 focus-visible:opacity-100 ${
+            className={`mix-blend-difference transition-[filter,opacity] duration-300 hover:opacity-100 hover:mix-blend-normal hover:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] focus-visible:opacity-100 focus-visible:mix-blend-normal focus-visible:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] ${
               l === locale ? 'opacity-100' : 'opacity-50'
             }`}
             aria-current={l === locale ? 'page' : undefined}
