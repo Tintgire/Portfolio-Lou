@@ -129,15 +129,31 @@ export function Hero() {
           </div>
         </div>
 
-        {/* scroll cue */}
+        {/* Scroll cue — outer span holds the static layout (centred bottom,
+            opacity tied to scroll progress) so it fades out the moment the
+            user starts scrolling. The inner span runs an infinite, gentle
+            downward bounce that keeps suggesting the scroll direction as
+            long as the user hasn't moved. x is set via motion (not
+            -translate-x-1/2) to avoid clobbering Framer's transform. */}
         <motion.span
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 10, x: '-50%' }}
+          animate={{ opacity: 1, y: 0, x: '-50%' }}
           transition={{ delay: 2.4, duration: 0.6 }}
           style={{ opacity: cueOpacity }}
-          className="text-meta text-cream absolute bottom-6 left-1/2 z-10 -translate-x-1/2 animate-pulse drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+          className="text-meta text-cream absolute bottom-6 left-1/2 z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
         >
-          ↓ {t('scroll')}
+          <motion.span
+            animate={{ y: [0, 6, 0] }}
+            transition={{
+              duration: 1.6,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: 3.2,
+            }}
+            className="inline-block"
+          >
+            ↓ {t('scroll')}
+          </motion.span>
         </motion.span>
       </div>
     </section>
