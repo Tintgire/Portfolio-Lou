@@ -11,7 +11,7 @@ const HOVER_SCRAMBLE_MS = 450;
 export function Nav({ locale }: { locale: string }) {
   const t = useTranslations('Nav');
   return (
-    <nav className="text-cream fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-6 py-4 mix-blend-difference">
+    <nav className="text-cream fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-6 py-4 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
       <Link href={`/${locale}`} className="text-meta">
         <TextScramble text="LOU.STUDIO" trigger="hover" duration={HOVER_SCRAMBLE_MS} />
       </Link>
