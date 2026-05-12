@@ -176,12 +176,28 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
             position={[0, 0, layout.screenZ]}
             rotation={[0, Math.PI, 0]}
           >
-            <meshBasicMaterial
+            {/*
+              Real-screen shading. The Instagram texture is bound to
+              both `map` (so the base shading carries the content) AND
+              `emissiveMap` at near-full intensity so the screen glows
+              on its own — even in shadow it stays bright, like a real
+              OLED. Roughness 0.35 lets the HDRI catch on the glass
+              surface so reflections track the same lighting as the
+              titanium body — this is what kills the "sticker on top"
+              feel when the device rotates. PolygonOffset eliminates
+              z-fighting against the baked screen pixels underneath.
+            */}
+            <meshStandardMaterial
               map={screenTexture}
+              emissiveMap={screenTexture}
+              emissive={'#ffffff'}
+              emissiveIntensity={1}
               toneMapped={false}
+              roughness={0.35}
+              metalness={0}
               polygonOffset
-              polygonOffsetFactor={-1}
-              polygonOffsetUnits={-1}
+              polygonOffsetFactor={-2}
+              polygonOffsetUnits={-2}
             />
           </mesh>
         )}
