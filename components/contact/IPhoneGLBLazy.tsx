@@ -8,9 +8,7 @@ const IPhoneGLBInternal = dynamic(() => import('./IPhoneGLB').then((m) => m.IPho
 });
 
 interface Props {
-  photoUrl: string;
   modelUrl?: string;
-  screenMeshHint?: string;
 }
 
 export function IPhoneGLBLazy(props: Props) {
