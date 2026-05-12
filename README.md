@@ -1,5 +1,7 @@
 # LOU STUDIO
 
+> 🇬🇧 **English** · 🇫🇷 [Lire en français](README.fr.md)
+
 Portfolio site for **Lou Boidin** — Paris-based makeup artist and stylist.
 Brutalist editorial direction, cinematic scroll, custom 3D, bilingual.
 
