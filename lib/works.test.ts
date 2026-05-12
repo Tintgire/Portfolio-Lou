@@ -35,6 +35,6 @@ describe('Integration', () => {
   it('reads real content/works directory', async () => {
     const works = await getAllWorks('fr');
     expect(works.length).toBeGreaterThanOrEqual(2);
-    expect(works.map((w) => w.slug)).toContain('bold-lipstick');
+    expect(works.map((w) => w.slug)).toContain('carmin');
   });
 });

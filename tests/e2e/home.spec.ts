@@ -20,6 +20,6 @@ test('home EN renders English nav', async ({ page }) => {
 });
 
 test('project page accessible', async ({ page }) => {
-  await page.goto('/fr/works/bold-lipstick');
-  await expect(page.locator('h1')).toContainText('Bold Lipstick');
+  await page.goto('/fr/works/carmin');
+  await expect(page.locator('h1')).toContainText('Carmin');
 });

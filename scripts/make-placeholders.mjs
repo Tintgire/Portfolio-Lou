@@ -7,7 +7,7 @@ const RED_JPEG = Buffer.from(
   'base64',
 );
 
-const slugs = ['bold-lipstick', 'latex-couture', 'silhouette-noire'];
+const slugs = ['carmin', 'seconde-peau', 'hors-champ'];
 for (const slug of slugs) {
   mkdirSync(`public/works/${slug}`, { recursive: true });
   writeFileSync(`public/works/${slug}/cover.jpg`, RED_JPEG);
