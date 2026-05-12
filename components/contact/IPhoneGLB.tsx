@@ -85,13 +85,13 @@ function Device({ modelUrl }: Required<Props>) {
 
   if (!layout) return null;
 
-  // Default framing: screen facing the camera with a subtle tilt that
-  // reveals the right-edge bezel — matches the reference screenshot.
-  // `Math.PI` flips the model so its screen faces +Z (the model's
-  // natural orientation has the screen on -Z, hence the bare-flip);
-  // -0.15 on Y adds the small clockwise tilt.
+  // Default framing: screen facing the camera with a pronounced clockwise
+  // tilt that opens up the right-edge bezel and gives the device a real
+  // 3D presence — matches the reference screenshot composition.
+  // `Math.PI` flips the model so its screen faces +Z (native orientation
+  // has the screen on -Z); -0.4 rad on Y (≈-23°) is the editorial tilt.
   return (
-    <group rotation={[0, Math.PI - 0.15, 0]} scale={layout.scale}>
+    <group rotation={[0, Math.PI - 0.4, 0]} scale={layout.scale}>
       <group position={layout.sceneOffset}>
         <primitive object={scene} />
       </group>
