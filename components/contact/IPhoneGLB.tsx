@@ -111,19 +111,16 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
     return {
       scale: targetHeight / longest,
       sceneOffset: [-centre.x, -centre.y, -centre.z] as [number, number, number],
-      // Sketchfab's iPhone bbox is slightly inflated relative to the
-      // visible device (the model's bezels/glass overlay puff up size.x
-      // by ~7-8% over the real device width). To match the actual
-      // visible screen area we need conservative inset percentages:
-      // ~76% × 84% rather than the textbook iPhone 14 Pro screen ratio
-      // of 84.5% × 88.6%. Positioned at the very front face so a side
-      // view sees the plane edge-on, flush with the device. PolygonOffset
-      // on the material handles z-fighting against the baked pixels.
-      screenWidth: size.x * 0.76,
-      screenHeight: size.y * 0.85,
-      screenRadius: size.x * 0.07,
+      // The model's bbox is ~7-8% wider/taller than the visible iPhone
+      // (mesh padding around the bezels). To fill the screen edge-to-
+      // edge we go aggressive: 96% × 97% of bbox. Side-view is safe
+      // because the plane sits flush at the front face with
+      // polygonOffset eliminating any z-fighting bleed.
+      screenWidth: size.x * 0.96,
+      screenHeight: size.y * 0.97,
+      screenRadius: size.x * 0.09,
       screenZ: -size.z / 2,
-      screenAspect: (size.x * 0.76) / (size.y * 0.85),
+      screenAspect: (size.x * 0.96) / (size.y * 0.97),
     };
   }, [bbox, viewport.height]);
 
