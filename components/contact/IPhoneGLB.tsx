@@ -117,11 +117,11 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
       // corners. Radius at ~18% of width matches the iPhone 14 Pro's
       // generous screen corner curvature so the 4 corners track the
       // bezel exactly.
-      screenWidth: size.x * 0.92,
-      screenHeight: size.y * 0.96,
+      screenWidth: size.x * 0.93,
+      screenHeight: size.y * 0.98,
       screenRadius: size.x * 0.18,
       screenZ: -size.z / 2,
-      screenAspect: (size.x * 0.92) / (size.y * 0.96),
+      screenAspect: (size.x * 0.93) / (size.y * 0.98),
     };
   }, [bbox, viewport.height]);
 
