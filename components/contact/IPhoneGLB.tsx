@@ -58,9 +58,11 @@ function makeScreenCanvasTexture(
   canvas.width = Math.round(HEIGHT * decalAspect);
   const ctx = canvas.getContext('2d')!;
 
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+  // Canvas starts transparent — we DON'T fill black behind the rounded
+  // rect. Anything outside the rounded clip stays at alpha 0, which the
+  // transparent material then skips at render time. The iPhone model's
+  // baked screen (with its own rounded edges and bezel) shows through
+  // at the corners and lines up naturally with our IG content.
   const r = canvas.width * cornerRadiusFraction;
   ctx.beginPath();
   ctx.moveTo(r, 0);
@@ -228,6 +230,7 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
     const decalMat = new THREE.MeshBasicMaterial({
       map: screenTexture,
       toneMapped: false,
+      transparent: true,
       polygonOffset: true,
       polygonOffsetFactor: -4,
       polygonOffsetUnits: -4,
