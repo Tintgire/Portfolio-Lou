@@ -36,12 +36,12 @@ export default function ContactPage() {
         <div className="min-w-0">
           {/* clamp(min, fluid, max): "CONTACT." stays 48px on iPhone SE
               and caps at 144px on 4K — no overflow at either extreme. */}
-          <h1 className="text-brutal mb-6 text-[clamp(3rem,12vw,9rem)] leading-none sm:mb-12">
+          <h1 className="text-brutal mb-6 text-[clamp(2.75rem,11vw,8.5rem)] leading-none sm:mb-12">
             CONTACT.
           </h1>
           <a
             href="mailto:hello@loustudio.fr"
-            className="text-brutal hover:text-signal mb-6 block text-[clamp(1.25rem,4vw,3rem)] break-all uppercase transition-colors sm:mb-8"
+            className="text-brutal hover:text-signal mb-6 block text-[clamp(1.25rem,3.8vw,2.75rem)] [overflow-wrap:anywhere] uppercase transition-colors sm:mb-8"
           >
             HELLO@LOUSTUDIO.FR
           </a>
