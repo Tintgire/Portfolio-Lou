@@ -1,10 +1,45 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { motion, useScroll, useTransform } from 'motion/react';
+import { motion, useMotionValue, useTransform, type MotionValue } from 'motion/react';
 import { TextScramble } from './TextScramble';
 import { ScrollFrames } from './ScrollFrames';
+
+/**
+ * Custom scroll-progress tracker that polls getBoundingClientRect on
+ * requestAnimationFrame, instead of relying on Framer's `useScroll`.
+ *
+ * Why custom: with Lenis driving smooth wheel-scroll on desktop, the
+ * native 'scroll' event fires irregularly (subject to wheel ticks and
+ * Lenis's RAF tween), and `useScroll`'s internal observer occasionally
+ * missed the narrow 0.22 → 0.28 window where STYLISM is supposed to
+ * fade in — symptom: STYLISM never appeared on desktop, only on
+ * touch devices that bypass Lenis's wheel smoothing. Polling on RAF
+ * guarantees we read the position every frame, no matter who's
+ * driving the scroll.
+ */
+function useSectionProgress(ref: React.RefObject<HTMLElement | null>): MotionValue<number> {
+  const progress = useMotionValue(0);
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      const el = ref.current;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const range = rect.height - window.innerHeight;
+        if (range > 0) {
+          const p = Math.max(0, Math.min(1, -rect.top / range));
+          progress.set(p);
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [ref, progress]);
+  return progress;
+}
 
 const TRACK_VH = 300; // total scroll height of the hero section, in viewport heights
 const FRAME_COUNT = 192; // matches the WebP frames extracted under /videos/frames/
@@ -22,10 +57,7 @@ export function Hero() {
   const t = useTranslations('Home');
   const sectionRef = useRef<HTMLElement>(null);
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end end'],
-  });
+  const scrollYProgress = useSectionProgress(sectionRef);
 
   // LOU title is fully visible during the intro window, then fades out by 12%.
   const louOpacity = useTransform(scrollYProgress, [0, 0.05, 0.12], [1, 1, 0]);
