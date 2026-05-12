@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { locales } from '@/i18n';
-import { TextScramble } from '@/components/home/TextScramble';
 
 export function LangSwitcher({ locale }: { locale: string }) {
   const pathname = usePathname();
@@ -20,7 +19,7 @@ export function LangSwitcher({ locale }: { locale: string }) {
             }`}
             aria-current={l === locale ? 'page' : undefined}
           >
-            <TextScramble text={l.toUpperCase()} trigger="hover" duration={300} />
+            {l.toUpperCase()}
           </Link>
         </span>
       ))}
