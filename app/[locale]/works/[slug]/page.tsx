@@ -52,6 +52,15 @@ export default async function WorkPage({
 
   return (
     <main className="bg-jet text-cream relative">
+      {/* Top fade behind the nav. The cover image at the top of each
+          project page can be bright or skin-toned, sinking the cream
+          nav links into the background. Same recipe as the About
+          page — invisible on bg-jet, restores contrast on light
+          covers. */}
+      <div
+        aria-hidden
+        className="from-jet/55 via-jet/20 pointer-events-none fixed inset-x-0 top-0 z-40 h-28 bg-gradient-to-b to-transparent"
+      />
       <Cover work={work} />
       <Intro body={work.bodyMdx} />
       {work.media.length > 0 && (
