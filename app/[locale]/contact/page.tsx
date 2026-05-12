@@ -1,5 +1,5 @@
 import { locales } from '@/i18n';
-import { IPhoneMockup } from '@/components/contact/IPhoneMockup';
+import { IPhoneGLBLazy } from '@/components/contact/IPhoneGLBLazy';
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -41,9 +41,23 @@ export default function ContactPage() {
 
         {/* Right column — 3D iPhone displaying one of Lou's shots */}
         <div className="relative h-[60vh] w-full md:h-[80vh]">
-          <IPhoneMockup photoUrl="/gallery/01.jpg" photoWidth={1440} photoHeight={1796} />
+          <IPhoneGLBLazy photoUrl="/gallery/01.jpg" />
         </div>
       </div>
+
+      {/* CC-BY-4.0 attribution required by the iPhone model's licence */}
+      <p className="text-meta text-cream/40 absolute right-6 bottom-4 md:right-20">
+        iPhone 14 Pro model by{' '}
+        <a
+          href="https://sketchfab.com/3d-models/iphone-14-pro-5cb0778041a34f09b409a38c687bb1d4"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline transition-opacity hover:opacity-100"
+        >
+          mister dude
+        </a>{' '}
+        — CC-BY 4.0
+      </p>
     </main>
   );
 }
