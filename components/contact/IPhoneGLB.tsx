@@ -112,15 +112,16 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
       scale: targetHeight / longest,
       sceneOffset: [-centre.x, -centre.y, -centre.z] as [number, number, number],
       // Filling the visible glass edge-to-edge. The model's bbox is
-      // ~7-8% wider/taller than the visible iPhone; 95% × 96% sits
+      // ~7-8% wider/taller than the visible iPhone; 93% × 94% sits
       // just inside the bezel without overflowing the rounded
-      // corners. Radius is bumped to ~14% of width so it tracks the
-      // iPhone 14 Pro screen curvature.
-      screenWidth: size.x * 0.95,
-      screenHeight: size.y * 0.96,
-      screenRadius: size.x * 0.14,
+      // corners. Radius at ~18% of width matches the iPhone 14 Pro's
+      // generous screen corner curvature so the 4 corners track the
+      // bezel exactly.
+      screenWidth: size.x * 0.93,
+      screenHeight: size.y * 0.94,
+      screenRadius: size.x * 0.18,
       screenZ: -size.z / 2,
-      screenAspect: (size.x * 0.95) / (size.y * 0.96),
+      screenAspect: (size.x * 0.93) / (size.y * 0.94),
     };
   }, [bbox, viewport.height]);
 
