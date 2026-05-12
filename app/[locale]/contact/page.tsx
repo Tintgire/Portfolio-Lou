@@ -1,5 +1,5 @@
 import { locales } from '@/i18n';
-import { IPhone3DLazy } from '@/components/contact/IPhone3DLazy';
+import { IPhoneMockup } from '@/components/contact/IPhoneMockup';
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -41,7 +41,7 @@ export default function ContactPage() {
 
         {/* Right column — 3D iPhone displaying one of Lou's shots */}
         <div className="relative h-[60vh] w-full md:h-[80vh]">
-          <IPhone3DLazy photoUrl="/gallery/01.jpg" />
+          <IPhoneMockup photoUrl="/gallery/01.jpg" photoWidth={1440} photoHeight={1796} />
         </div>
       </div>
     </main>
