@@ -142,13 +142,19 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
   const layout = useMemo(() => {
     if (!bbox) return null;
     const { size, centre } = bbox;
-    const targetHeight = viewport.height * 0.85;
-    const longest = Math.max(size.x, size.y, size.z);
+    // Two-axis fit: the iPhone must respect both 85% of the canvas
+    // height AND ~75% of its width. Scaling by height alone (the old
+    // logic) overflowed horizontally on narrow-tall canvases (mobile
+    // portrait), and overshot on ultra-wide containers where the
+    // device looked dwarfed. Math.min picks whichever constraint is
+    // tighter for the current viewport.
+    const scaleByHeight = (viewport.height * 0.85) / size.y;
+    const scaleByWidth = (viewport.width * 0.75) / size.x;
     return {
-      scale: targetHeight / longest,
+      scale: Math.min(scaleByHeight, scaleByWidth),
       sceneOffset: [-centre.x, -centre.y, -centre.z] as [number, number, number],
     };
-  }, [bbox, viewport.height]);
+  }, [bbox, viewport.height, viewport.width]);
 
   const targetMesh = useMemo<Mesh | null>(() => {
     if (!scene) return null;

@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default function ContactPage() {
   return (
-    <main className="bg-jet text-cream relative min-h-screen overflow-hidden px-6 pt-32 pb-16 md:px-20">
+    <main className="bg-jet text-cream relative min-h-screen overflow-hidden px-4 pt-24 pb-20 sm:px-6 sm:pt-32 md:px-20">
       {/* Kick off the 16 MB GLB fetch as soon as the HTML is parsed,
           in parallel with the JS chunk that mounts the 3D scene. By
           the time useGLTF inside IPhoneGLB asks for the file, it's
@@ -31,13 +31,17 @@ export default function ContactPage() {
         href="/models/iphone_14_pro.glb"
         crossOrigin="anonymous"
       />
-      <div className="grid min-h-[calc(100vh-12rem)] grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-8">
+      <div className="grid min-h-[calc(100vh-8rem)] grid-cols-1 items-center gap-8 sm:gap-12 md:min-h-[calc(100vh-12rem)] md:grid-cols-2 md:gap-8">
         {/* Left column — title + the two contact endpoints */}
-        <div>
-          <h1 className="text-brutal mb-12 text-7xl leading-none md:text-[10vw]">CONTACT.</h1>
+        <div className="min-w-0">
+          {/* clamp(min, fluid, max): "CONTACT." stays 48px on iPhone SE
+              and caps at 144px on 4K — no overflow at either extreme. */}
+          <h1 className="text-brutal mb-6 text-[clamp(3rem,12vw,9rem)] leading-none sm:mb-12">
+            CONTACT.
+          </h1>
           <a
             href="mailto:hello@loustudio.fr"
-            className="text-brutal hover:text-signal mb-8 block text-3xl uppercase transition-colors md:text-5xl"
+            className="text-brutal hover:text-signal mb-6 block text-[clamp(1.25rem,4vw,3rem)] break-all uppercase transition-colors sm:mb-8"
           >
             HELLO@LOUSTUDIO.FR
           </a>
@@ -51,14 +55,17 @@ export default function ContactPage() {
           </a>
         </div>
 
-        {/* Right column — 3D iPhone displaying one of Lou's shots */}
-        <div className="relative h-[60vh] w-full md:h-[80vh]">
+        {/* Right column — 3D iPhone displaying one of Lou's shots.
+            Min/max bounds prevent the canvas from shrinking under 360px
+            on cramped phones (model becomes a smudge) or stretching
+            past 820px on 4K (eats the whole viewport). */}
+        <div className="relative h-[55vh] min-h-[360px] w-full md:h-[80vh] md:max-h-[820px]">
           <IPhoneGLBLazy screenImageUrl="/contact/lou-instagram.jpeg" />
         </div>
       </div>
 
       {/* CC-BY-4.0 attribution required by the iPhone model's licence */}
-      <p className="text-meta text-cream/40 absolute right-6 bottom-4 md:right-20">
+      <p className="text-meta text-cream/40 absolute right-4 bottom-3 sm:right-6 md:right-20 md:bottom-4">
         iPhone 14 Pro model by{' '}
         <a
           href="https://sketchfab.com/3d-models/iphone-14-pro-5cb0778041a34f09b409a38c687bb1d4"
