@@ -23,6 +23,47 @@ const MODEL_URL_DEFAULT = '/models/iphone_14_pro.glb';
  *   - Roughness ≥ 0.5 and metalness ≤ 0.6 — flattens the glossy HDRI
  *     reflections that otherwise make the textures shimmer on rotate.
  */
+/**
+ * Builds a rounded-rect ShapeGeometry sized in the local XY plane so it
+ * matches the iPhone's actual visible screen area (rounded corners and
+ * all). UVs are remapped so the supplied texture covers the full
+ * bounding rectangle from (0,0) to (1,1) — the rounded corners simply
+ * mask the texture's edges.
+ */
+function makeRoundedScreenGeometry(width: number, height: number, radius: number) {
+  const w = width / 2;
+  const h = height / 2;
+  const r = Math.min(radius, w * 0.99, h * 0.99);
+
+  const shape = new THREE.Shape();
+  shape.moveTo(-w + r, -h);
+  shape.lineTo(w - r, -h);
+  shape.quadraticCurveTo(w, -h, w, -h + r);
+  shape.lineTo(w, h - r);
+  shape.quadraticCurveTo(w, h, w - r, h);
+  shape.lineTo(-w + r, h);
+  shape.quadraticCurveTo(-w, h, -w, h - r);
+  shape.lineTo(-w, -h + r);
+  shape.quadraticCurveTo(-w, -h, -w + r, -h);
+
+  const geometry = new THREE.ShapeGeometry(shape, 24);
+
+  // Default ShapeGeometry UVs map vertex world-space positions directly,
+  // which doesn't fit our (0..1) texture. Remap so each vertex's UV is
+  // its position within the bounding rect.
+  const positions = geometry.attributes.position!;
+  const uvs = new Float32Array(positions.count * 2);
+  for (let i = 0; i < positions.count; i++) {
+    const x = positions.getX(i);
+    const y = positions.getY(i);
+    uvs[i * 2] = (x + w) / width;
+    uvs[i * 2 + 1] = (y + h) / height;
+  }
+  geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 function normaliseMaterials(scene: Group) {
   scene.traverse((obj) => {
     const mesh = obj as Mesh;
@@ -70,15 +111,18 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
     return {
       scale: targetHeight / longest,
       sceneOffset: [-centre.x, -centre.y, -centre.z] as [number, number, number],
-      // Screen plane sized to ~91% of the iPhone front face (matches the
-      // active screen area inside the bezel). Positioned just in front
-      // of the natural-orientation screen face (which lives at -size.z/2
-      // after recentring); a tiny epsilon avoids z-fighting with the
-      // model's baked screen pixels.
-      screenWidth: size.x * 0.91,
-      screenHeight: size.y * 0.965,
-      screenZ: -size.z / 2 - 0.001,
-      screenAspect: (size.x * 0.91) / (size.y * 0.965),
+      // Screen plane sized to the actual visible screen area of an
+      // iPhone 14 Pro: ~84% of device width × 88% of device height
+      // (the bezels eat the rest). Positioned EXACTLY at the front
+      // face (-size.z/2 after recentring) — no offset — so a side
+      // view sees the plane edge-on, flush with the device. Z-fighting
+      // against the model's baked pixels is avoided via polygonOffset
+      // on the material below instead.
+      screenWidth: size.x * 0.84,
+      screenHeight: size.y * 0.88,
+      screenRadius: size.x * 0.084 * 0.95,
+      screenZ: -size.z / 2,
+      screenAspect: (size.x * 0.84) / (size.y * 0.88),
     };
   }, [bbox, viewport.height]);
 
@@ -107,22 +151,39 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
     /* eslint-enable react-hooks/immutability */
   }, [screenTexture, layout, screenImageUrl]);
 
+  // Rounded-rect geometry for the screen overlay — recomputed when the
+  // layout changes (i.e. on viewport resize) so the corner radius stays
+  // proportional to the device.
+  const screenGeometry = useMemo(() => {
+    if (!layout) return null;
+    return makeRoundedScreenGeometry(layout.screenWidth, layout.screenHeight, layout.screenRadius);
+  }, [layout]);
+
   if (!layout) return null;
 
   // The iPhone model's screen natively faces -Z. The outer group adds
   // Math.PI to flip it toward the camera + a -0.4 rad clockwise tilt.
-  // The overlay plane sits inside the recentred inner group at the
-  // screen-face position; its own local rotation Math.PI around Y flips
-  // its native +Z normal to -Z so it ends up coplanar with the device's
+  // The overlay sits inside the recentred inner group at the screen-
+  // face position; its own local rotation Math.PI around Y flips its
+  // native +Z normal to -Z so it ends up coplanar with the device's
   // front face after the outer transforms.
   return (
     <group rotation={[0, Math.PI - 0.4, 0]} scale={layout.scale}>
       <group position={layout.sceneOffset}>
         <primitive object={scene} />
-        {screenImageUrl && (
-          <mesh position={[0, 0, layout.screenZ]} rotation={[0, Math.PI, 0]}>
-            <planeGeometry args={[layout.screenWidth, layout.screenHeight]} />
-            <meshBasicMaterial map={screenTexture} toneMapped={false} />
+        {screenImageUrl && screenGeometry && (
+          <mesh
+            geometry={screenGeometry}
+            position={[0, 0, layout.screenZ]}
+            rotation={[0, Math.PI, 0]}
+          >
+            <meshBasicMaterial
+              map={screenTexture}
+              toneMapped={false}
+              polygonOffset
+              polygonOffsetFactor={-1}
+              polygonOffsetUnits={-1}
+            />
           </mesh>
         )}
       </group>
