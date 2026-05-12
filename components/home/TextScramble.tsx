@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const SCRAMBLE_CHARS = '!<>-_\\/[]{}—=+*^?#@$%&';
 
@@ -12,6 +12,12 @@ interface Props {
   /** Total duration of the scramble pass, in ms */
   duration?: number;
   className?: string;
+  /**
+   * When the scramble fires.
+   * - 'mount' (default): runs once when the component mounts.
+   * - 'hover': re-runs on every pointerenter / focus.
+   */
+  trigger?: 'mount' | 'hover';
 }
 
 /**
@@ -19,16 +25,25 @@ interface Props {
  * target text. Inspired by 21st.dev's "Modern Animated Hero" — adapted to be
  * lighter and to respect prefers-reduced-motion.
  */
-export function TextScramble({ text, delay = 0, duration = 900, className }: Props) {
+export function TextScramble({
+  text,
+  delay = 0,
+  duration = 900,
+  className,
+  trigger = 'mount',
+}: Props) {
   const [output, setOutput] = useState(text);
   const rafRef = useRef<number | null>(null);
 
-  useEffect(() => {
+  const run = useCallback(() => {
     const prefersReduced =
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // output already initialised to text via useState — nothing to do when motion is suppressed
+    // When motion is suppressed, leave `output` at whatever React renders
+    // it to (initial `text` via useState, or last settled value).
     if (prefersReduced) return;
+    // Cancel any in-flight pass so a rapid re-hover restarts cleanly.
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
 
     let start = 0;
     const tick = (now: number) => {
@@ -56,13 +71,25 @@ export function TextScramble({ text, delay = 0, duration = 900, className }: Pro
       }
     };
     rafRef.current = requestAnimationFrame(tick);
+  }, [text, delay, duration]);
+
+  // For trigger='mount', the scramble pass schedules its first setState
+  // via requestAnimationFrame inside `run` — i.e. always asynchronously,
+  // so this useEffect itself never touches state synchronously.
+  // For trigger='hover', the locale switch (which changes `text`) is a
+  // full route change that remounts the component, so a stale `output`
+  // is not a risk we need to guard against here.
+  useEffect(() => {
+    if (trigger === 'mount') run();
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [text, delay, duration]);
+  }, [trigger, run]);
+
+  const hoverHandlers = trigger === 'hover' ? { onPointerEnter: run, onFocus: run } : undefined;
 
   return (
-    <span className={className} aria-label={text}>
+    <span className={className} aria-label={text} {...hoverHandlers}>
       {output}
     </span>
   );
