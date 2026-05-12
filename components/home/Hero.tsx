@@ -63,14 +63,14 @@ export function Hero() {
   const louOpacity = useTransform(scrollYProgress, [0, 0.05, 0.12], [1, 1, 0]);
   const louScale = useTransform(scrollYProgress, [0, 0.12], [1, 0.94]);
 
-  // Manifesto windows — tighter now so STYLISM arrives early (~22%) and HOLDS
-  // for ~78% of the scroll — impossible to miss even on a quick swipe.
-  //   MAKEUP    14-25% (4% fade in, 4% hold, 3% fade out)
-  //   STYLISM   22-100% (6% fade in, 72% hold)
-  const op1 = useTransform(scrollYProgress, [0.14, 0.18, 0.22, 0.25], [0, 1, 1, 0]);
-  const op2 = useTransform(scrollYProgress, [0.22, 0.28, 0.95, 1], [0, 1, 1, 1]);
+  // Manifesto windows — MAKEUP holds 8% before crossfading into STYLISM,
+  // which then HOLDS to the end of the scroll.
+  //   MAKEUP    14-29% (4% fade in, 8% hold, 3% fade out)
+  //   STYLISM   26-100% (6% fade in, 68% hold)
+  const op1 = useTransform(scrollYProgress, [0.14, 0.18, 0.26, 0.29], [0, 1, 1, 0]);
+  const op2 = useTransform(scrollYProgress, [0.26, 0.32, 0.95, 1], [0, 1, 1, 1]);
   const y1 = useTransform(scrollYProgress, [0.14, 0.18], ['10%', '0%']);
-  const y2 = useTransform(scrollYProgress, [0.22, 0.28], ['10%', '0%']);
+  const y2 = useTransform(scrollYProgress, [0.26, 0.32], ['10%', '0%']);
 
   // Scroll cue fades out as soon as the user starts scrolling.
   const cueOpacity = useTransform(scrollYProgress, [0, 0.04], [1, 0]);
