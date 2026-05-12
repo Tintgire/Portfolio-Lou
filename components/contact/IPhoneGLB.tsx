@@ -90,6 +90,12 @@ function makeScreenCanvasTexture(
     drawX = 0;
     drawY = (canvas.height - drawH) / 2;
   }
+  // Flip horizontally to compensate the projector orientation: the
+  // mesh's world rotation (Math.PI around Y) mirrors the projector's
+  // local X, so the UVs come out reversed. Pre-flipping the canvas
+  // image cancels that out and renders the IG screenshot the right way.
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
   ctx.drawImage(img, drawX, drawY, drawW, drawH);
   ctx.restore();
 
