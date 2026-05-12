@@ -19,6 +19,18 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default function ContactPage() {
   return (
     <main className="bg-jet text-cream relative min-h-screen overflow-hidden px-6 pt-32 pb-16 md:px-20">
+      {/* Kick off the 16 MB GLB fetch as soon as the HTML is parsed,
+          in parallel with the JS chunk that mounts the 3D scene. By
+          the time useGLTF inside IPhoneGLB asks for the file, it's
+          already in the browser cache → instant texture display, no
+          progressive paint. */}
+      <link
+        rel="preload"
+        as="fetch"
+        type="model/gltf-binary"
+        href="/models/iphone_14_pro.glb"
+        crossOrigin="anonymous"
+      />
       <div className="grid min-h-[calc(100vh-12rem)] grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-8">
         {/* Left column — title + the two contact endpoints */}
         <div>

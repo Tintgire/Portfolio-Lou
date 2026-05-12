@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { ContactShadows, Environment, OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import type { Group } from 'three';
+import type { Group, Material, Mesh, MeshStandardMaterial } from 'three';
 
 interface Props {
   /** Path to the glTF/GLB iPhone model under /public. */
@@ -14,18 +14,53 @@ interface Props {
 const MODEL_URL_DEFAULT = '/models/iphone_14_pro.glb';
 
 /**
+ * Normalises every material in a loaded glTF/GLB scene so the model
+ * renders predictably:
+ *   - `transparent: false` + `depthWrite: true` — kills the alpha-mode-
+ *     BLEND see-through that Sketchfab exporters sometimes leave on
+ *     opaque objects (the iPhone's frame).
+ *   - `side: FrontSide` so we never see geometry from the inside.
+ *   - Roughness clamped to ≥ 0.5 and metalness ≤ 0.6 — flattens the
+ *     glossy environment reflections that otherwise make the baked
+ *     textures "shimmer" as the user rotates the device.
+ */
+function normaliseMaterials(scene: Group) {
+  scene.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh) return;
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    mats.forEach((mat: Material) => {
+      mat.transparent = false;
+      mat.depthWrite = true;
+      mat.side = THREE.FrontSide;
+      const std = mat as MeshStandardMaterial;
+      if (typeof std.roughness === 'number') {
+        std.roughness = Math.max(std.roughness, 0.5);
+      }
+      if (typeof std.metalness === 'number') {
+        std.metalness = Math.min(std.metalness, 0.6);
+      }
+      mat.needsUpdate = true;
+    });
+  });
+}
+
+/**
  * iPhone 14 Pro by "mister dude" (CC-BY 4.0 — see contact page footer).
  *
- * The model ships with its own baked textures (frame, screen wallpaper,
- * camera bump) that already look gorgeous, so we render it as-is: no
- * overlay, no auto-rotation, no idle bobbing. The user takes over via
- * <OrbitControls> — click & drag to rotate, controls release on pointer-
- * up. Zoom and pan are disabled to keep the device locked at a sensible
- * size in the page composition.
+ * Renders the model with its baked textures (frame finish, screen
+ * wallpaper, camera bump) and exposes drag-to-rotate via OrbitControls.
+ * No auto-motion. No overlay. The material normaliser runs once after
+ * load so we get consistent, non-see-through surfaces regardless of
+ * what the GLB exporter shipped.
  */
 function Device({ modelUrl }: Required<Props>) {
   const { scene } = useGLTF(modelUrl) as unknown as { scene: Group };
   const { viewport } = useThree();
+
+  useEffect(() => {
+    if (scene) normaliseMaterials(scene);
+  }, [scene]);
 
   const bbox = useMemo(() => {
     if (!scene) return null;
@@ -52,8 +87,6 @@ function Device({ modelUrl }: Required<Props>) {
 
   return (
     <group rotation={[0, -0.45, 0]} scale={layout.scale}>
-      {/* Recentre the scene so OrbitControls rotates around the device
-          centre, not around its origin corner. */}
       <group position={layout.sceneOffset}>
         <primitive object={scene} />
       </group>
@@ -70,9 +103,9 @@ export function IPhoneGLB({ modelUrl = MODEL_URL_DEFAULT }: Props) {
 
   return (
     <Canvas camera={{ position: [0, 0, 5], fov: 32 }} dpr={[1, 2]} shadows gl={{ antialias: true }}>
-      <ambientLight intensity={0.55} />
-      <directionalLight position={[3, 4, 4]} intensity={1.5} castShadow />
-      <directionalLight position={[-4, -1, -2]} intensity={0.55} color="#9aa6b2" />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[3, 4, 4]} intensity={1.4} castShadow />
+      <directionalLight position={[-4, -1, -2]} intensity={0.5} color="#9aa6b2" />
 
       <Suspense fallback={null}>
         <Device modelUrl={modelUrl} />
@@ -83,9 +116,6 @@ export function IPhoneGLB({ modelUrl = MODEL_URL_DEFAULT }: Props) {
         <ContactShadows position={[0, -2, 0]} opacity={0.45} scale={6} blur={2.8} far={2.5} />
       )}
 
-      {/* Click & drag to rotate. Zoom + pan disabled so the user can't
-          accidentally throw the iPhone off-screen. Damping gives the
-          rotation a slight inertia after release, which feels premium. */}
       <OrbitControls
         enableZoom={false}
         enablePan={false}
@@ -99,4 +129,9 @@ export function IPhoneGLB({ modelUrl = MODEL_URL_DEFAULT }: Props) {
   );
 }
 
+// Preload BOTH the GLB structure AND its embedded textures at module load
+// time, so by the time the user navigates to /contact the GPU already
+// has the bitmaps decoded. Drei's GLTFLoader handles the glb-embedded
+// JPEG/PNGs internally via THREE.TextureLoader, so a single preload call
+// covers everything.
 useGLTF.preload(MODEL_URL_DEFAULT);
