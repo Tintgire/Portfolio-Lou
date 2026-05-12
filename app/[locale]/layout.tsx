@@ -48,6 +48,15 @@ export default async function LocaleLayout({
           <GsapProvider>
             <LenisProvider>
               <LoadingScreen />
+              {/* Sits behind the nav, in front of the page. Provides
+                  consistent contrast for the cream nav links on light
+                  pages (the About page portrait is mostly skin-tones)
+                  while staying invisible on bg-jet pages — darkening
+                  100% black with 55% black is still 100% black. */}
+              <div
+                aria-hidden
+                className="from-jet/55 via-jet/20 pointer-events-none fixed inset-x-0 top-0 z-40 h-28 bg-gradient-to-b to-transparent"
+              />
               <Nav locale={locale} />
               {children}
               <Footer locale={locale} />
