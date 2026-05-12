@@ -14,7 +14,9 @@ export function LangSwitcher({ locale }: { locale: string }) {
           {i > 0 && <span aria-hidden>/</span>}
           <Link
             href={`/${l}${stripped}`}
-            className={l === locale ? 'opacity-100' : 'opacity-50 hover:opacity-100'}
+            className={`transition-[text-shadow,opacity,color] duration-300 hover:text-white hover:opacity-100 hover:[text-shadow:0_0_20px_rgba(255,255,255,0.7)] focus-visible:text-white focus-visible:opacity-100 focus-visible:[text-shadow:0_0_20px_rgba(255,255,255,0.7)] ${
+              l === locale ? 'opacity-100' : 'opacity-50'
+            }`}
             aria-current={l === locale ? 'page' : undefined}
           >
             {l.toUpperCase()}
