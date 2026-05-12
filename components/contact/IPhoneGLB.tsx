@@ -111,16 +111,16 @@ function Device({ modelUrl, screenImageUrl }: { modelUrl: string; screenImageUrl
     return {
       scale: targetHeight / longest,
       sceneOffset: [-centre.x, -centre.y, -centre.z] as [number, number, number],
-      // The model's bbox is ~7-8% wider/taller than the visible iPhone
-      // (mesh padding around the bezels). To fill the screen edge-to-
-      // edge we go aggressive: 96% × 97% of bbox. Side-view is safe
-      // because the plane sits flush at the front face with
-      // polygonOffset eliminating any z-fighting bleed.
-      screenWidth: size.x * 0.96,
-      screenHeight: size.y * 0.97,
-      screenRadius: size.x * 0.09,
+      // Filling the visible glass edge-to-edge. The model's bbox is
+      // ~7-8% wider/taller than the visible iPhone; 95% × 96% sits
+      // just inside the bezel without overflowing the rounded
+      // corners. Radius is bumped to ~14% of width so it tracks the
+      // iPhone 14 Pro screen curvature.
+      screenWidth: size.x * 0.95,
+      screenHeight: size.y * 0.96,
+      screenRadius: size.x * 0.14,
       screenZ: -size.z / 2,
-      screenAspect: (size.x * 0.96) / (size.y * 0.97),
+      screenAspect: (size.x * 0.95) / (size.y * 0.96),
     };
   }, [bbox, viewport.height]);
 
