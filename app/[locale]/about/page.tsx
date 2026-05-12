@@ -24,6 +24,15 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
   const about = await getAbout(locale as Locale);
   return (
     <main className="bg-jet text-cream relative">
+      {/* Top fade behind the nav. The portrait at the top of this page
+          is mostly skin-tones / cream, which sinks the cream nav links
+          into the background. A subtle dark wash (jet/55 → transparent
+          over 112px) restores contrast without touching any other page
+          where bg-jet already provides it for free. */}
+      <div
+        aria-hidden
+        className="from-jet/55 via-jet/20 pointer-events-none fixed inset-x-0 top-0 z-40 h-28 bg-gradient-to-b to-transparent"
+      />
       <section className="relative h-screen">
         <Image
           src={about.data.portrait}
