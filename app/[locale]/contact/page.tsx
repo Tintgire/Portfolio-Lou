@@ -40,10 +40,10 @@ export default function ContactPage() {
             CONTACT.
           </h1>
           <a
-            href="mailto:hello@loustudio.fr"
+            href="mailto:lou.boidin@gmail.com"
             className="text-brutal hover:text-signal mb-6 block text-[clamp(1.25rem,3.8vw,2.75rem)] [overflow-wrap:anywhere] uppercase transition-colors sm:mb-8"
           >
-            HELLO@LOUSTUDIO.FR
+            LOU.BOIDIN@GMAIL.COM
           </a>
           <a
             href="https://www.instagram.com/lou.boidin/"
