@@ -1,11 +1,5 @@
-import dynamic from 'next/dynamic';
 import { locales } from '@/i18n';
-
-// 3D scene is a client-only island — Suspense + Canvas don't SSR cleanly
-// and there's no SEO benefit to rendering an iPhone on the server.
-const IPhone3D = dynamic(() => import('@/components/contact/IPhone3D').then((m) => m.IPhone3D), {
-  ssr: false,
-});
+import { IPhone3DLazy } from '@/components/contact/IPhone3DLazy';
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -47,7 +41,7 @@ export default function ContactPage() {
 
         {/* Right column — 3D iPhone displaying one of Lou's shots */}
         <div className="relative h-[60vh] w-full md:h-[80vh]">
-          <IPhone3D photoUrl="/gallery/01.jpg" />
+          <IPhone3DLazy photoUrl="/gallery/01.jpg" />
         </div>
       </div>
     </main>
