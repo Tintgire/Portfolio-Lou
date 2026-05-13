@@ -1,3 +1,5 @@
+https://github.com/user-attachments/assets/26faae3a-244f-4a9e-8872-2d012ec69347
+
 # LOU STUDIO
 
 > 🇬🇧 **English** · 🇫🇷 [Lire en français](README.fr.md)
