@@ -37,10 +37,22 @@ const centre = new THREE.Vector3();
 box.getSize(size);
 box.getCenter(centre);
 console.log('world bbox after composed matrices:');
-console.log('  min   :', box.min.toArray().map((n) => n.toFixed(5)));
-console.log('  max   :', box.max.toArray().map((n) => n.toFixed(5)));
-console.log('  size  :', size.toArray().map((n) => n.toFixed(5)));
-console.log('  centre:', centre.toArray().map((n) => n.toFixed(5)));
+console.log(
+  '  min   :',
+  box.min.toArray().map((n) => n.toFixed(5)),
+);
+console.log(
+  '  max   :',
+  box.max.toArray().map((n) => n.toFixed(5)),
+);
+console.log(
+  '  size  :',
+  size.toArray().map((n) => n.toFixed(5)),
+);
+console.log(
+  '  centre:',
+  centre.toArray().map((n) => n.toFixed(5)),
+);
 const longest = Math.max(...size.toArray());
 console.log(
   '  ratio (x:y:z normalised to longest):',
