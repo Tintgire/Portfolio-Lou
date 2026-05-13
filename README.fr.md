@@ -2,6 +2,16 @@
 
 > 🇫🇷 **Français** · 🇬🇧 [Read in English](README.md)
 
+[![CI](https://github.com/Tintgire/Portfolio-Lou/actions/workflows/ci.yml/badge.svg)](https://github.com/Tintgire/Portfolio-Lou/actions/workflows/ci.yml)
+![Next.js](https://img.shields.io/badge/Next.js-16.2-000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38BDF8?logo=tailwindcss&logoColor=white)
+![Three.js](https://img.shields.io/badge/Three.js-0.184-000?logo=threedotjs&logoColor=white)
+![Framer Motion](https://img.shields.io/badge/Framer_Motion-12-FF0080?logo=framer&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-deployed-000?logo=vercel&logoColor=white)
+![License](https://img.shields.io/badge/License-All_Rights_Reserved-red)
+
 Site portfolio de **Lou Boidin** — maquilleuse et styliste basée à Paris.
 Direction artistique brutalist éditoriale, scroll cinématique, 3D sur-mesure, bilingue.
 
