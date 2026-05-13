@@ -247,9 +247,11 @@ tests/
 
 ## 🪪 Crédits
 
-**Design & développement** · Hugo Boidin
-**Artiste mise en avant** · Lou Boidin — [@lou.boidin](https://www.instagram.com/lou.boidin/)
+**Design & développement** · Hugo Boidin — [boidinhugo14@gmail.com](mailto:boidinhugo14@gmail.com)
+**Artiste mise en avant** · Lou Boidin — [@lou.boidin](https://www.instagram.com/lou.boidin/) · [lou.boidin@gmail.com](mailto:lou.boidin@gmail.com)
 **Modèle 3D iPhone 14 Pro** · [mister dude](https://sketchfab.com/misterdude) sur Sketchfab, CC-BY 4.0
+
+> Disponible pour freelance / collaboration — n'hésitez pas à me contacter sur la stack, les animations, ou pour commander un portfolio éditorial similaire.
 
 ---
 
