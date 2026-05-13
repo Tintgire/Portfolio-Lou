@@ -7,7 +7,7 @@ https://github.com/user-attachments/assets/26faae3a-244f-4a9e-8872-2d012ec69347
 Portfolio site for **Lou Boidin** — Paris-based makeup artist and stylist.
 Brutalist editorial direction, cinematic scroll, custom 3D, bilingual.
 
-**Instagram** · [@lou.boidin](https://www.instagram.com/lou.boidin/) — **Live** · `loustudio.fr` _(deployed on Vercel)_
+**Instagram** · [@lou.boidin](https://www.instagram.com/lou.boidin/) — **Live** · [portfolio-lou-six.vercel.app](https://portfolio-lou-six.vercel.app/fr) _(deployed on Vercel — `/fr` default, `/en` for English)_
 
 [![CI](https://github.com/Tintgire/Portfolio-Lou/actions/workflows/ci.yml/badge.svg)](https://github.com/Tintgire/Portfolio-Lou/actions/workflows/ci.yml)
 ![Next.js](https://img.shields.io/badge/Next.js-16.2-000?logo=nextdotjs&logoColor=white)

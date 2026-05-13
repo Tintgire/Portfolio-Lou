@@ -11,8 +11,11 @@ import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { AmbientAudio } from '@/components/ui/AmbientAudio';
 import { locales, type Locale } from '@/i18n';
 
+// Base URL used for absolute metadata (OG images, sitemap canonical, etc.).
+// Currently pointing at the Vercel deploy URL — switch to the custom domain
+// once it's pointed at this project.
 export const metadata: Metadata = {
-  metadataBase: new URL('https://loustudio.fr'),
+  metadataBase: new URL('https://portfolio-lou-six.vercel.app'),
 };
 
 const anton = Anton({

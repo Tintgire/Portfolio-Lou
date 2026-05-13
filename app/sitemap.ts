@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { getAllWorks } from '@/lib/works';
 import { locales } from '@/i18n';
 
-const BASE = 'https://loustudio.fr';
+const BASE = 'https://portfolio-lou-six.vercel.app';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];

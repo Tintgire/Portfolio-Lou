@@ -7,7 +7,7 @@ https://github.com/user-attachments/assets/4e8c940f-ffd0-4a99-9aea-5b7e3a1cc59a
 Site portfolio de **Lou Boidin** — maquilleuse et styliste basée à Paris.
 Direction artistique brutalist éditoriale, scroll cinématique, 3D sur-mesure, bilingue.
 
-**Instagram** · [@lou.boidin](https://www.instagram.com/lou.boidin/) — **Live** · `loustudio.fr` _(déployé sur Vercel)_
+**Instagram** · [@lou.boidin](https://www.instagram.com/lou.boidin/) — **Live** · [portfolio-lou-six.vercel.app](https://portfolio-lou-six.vercel.app/fr) _(déployé sur Vercel — `/fr` par défaut, `/en` pour l'anglais)_
 
 [![CI](https://github.com/Tintgire/Portfolio-Lou/actions/workflows/ci.yml/badge.svg)](https://github.com/Tintgire/Portfolio-Lou/actions/workflows/ci.yml)
 ![Next.js](https://img.shields.io/badge/Next.js-16.2-000?logo=nextdotjs&logoColor=white)
