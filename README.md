@@ -1,8 +1,13 @@
-https://github.com/user-attachments/assets/26faae3a-244f-4a9e-8872-2d012ec69347
-
 # LOU STUDIO
 
 > 🇬🇧 **English** · 🇫🇷 [Lire en français](README.fr.md)
+
+https://github.com/user-attachments/assets/26faae3a-244f-4a9e-8872-2d012ec69347
+
+Portfolio site for **Lou Boidin** — Paris-based makeup artist and stylist.
+Brutalist editorial direction, cinematic scroll, custom 3D, bilingual.
+
+**Instagram** · [@lou.boidin](https://www.instagram.com/lou.boidin/) — **Live** · `loustudio.fr` _(deployed on Vercel)_
 
 [![CI](https://github.com/Tintgire/Portfolio-Lou/actions/workflows/ci.yml/badge.svg)](https://github.com/Tintgire/Portfolio-Lou/actions/workflows/ci.yml)
 ![Next.js](https://img.shields.io/badge/Next.js-16.2-000?logo=nextdotjs&logoColor=white)
@@ -13,12 +18,6 @@ https://github.com/user-attachments/assets/26faae3a-244f-4a9e-8872-2d012ec69347
 ![Framer Motion](https://img.shields.io/badge/Framer_Motion-12-FF0080?logo=framer&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-deployed-000?logo=vercel&logoColor=white)
 ![License](https://img.shields.io/badge/License-All_Rights_Reserved-red)
-
-Portfolio site for **Lou Boidin** — Paris-based makeup artist and stylist.
-Brutalist editorial direction, cinematic scroll, custom 3D, bilingual.
-
-**Instagram** · [@lou.boidin](https://www.instagram.com/lou.boidin/)
-**Live** · `loustudio.fr` _(deployed on Vercel)_
 
 ---
 
